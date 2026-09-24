@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Math Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&family=Pixelify+Sans:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky:#7EC8F5; --sky2:#C9EBFC; --stone:#80858E; --stone-d:#5E636B;
+  --ink:#172033; --ink-soft:#3A4560; --panel:#FFFDF6; --panel-d:#D6CFBA; --edge:#172033;
+  --p1:#D9403A; --p1-soft:#FFE1DD; --p2:#8A5CE0; --p2-soft:#ECE3FF;
+  --p3:#E0A416; --p3-soft:#FFF1C7; --p4:#2F7FD8; --p4-soft:#DDEBFF;
+  --good:#23994A; --bad:#D23A28; --lucky:#1FC8D0;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --sky:#141B38; --sky2:#27315E; --stone:#4F535B; --stone-d:#383B41;
+  --ink:#F4F6FB; --ink-soft:#CDD5E6; --panel:#262B42; --panel-d:#141726; --edge:#05070E;
+  --p1-soft:#52262C; --p2-soft:#3B2E66; --p3-soft:#54441A; --p4-soft:#1E3556;}}
+:root[data-theme="dark"]{
+  --sky:#141B38; --sky2:#27315E; --stone:#4F535B; --stone-d:#383B41;
+  --ink:#F4F6FB; --ink-soft:#CDD5E6; --panel:#262B42; --panel-d:#141726; --edge:#05070E;
+  --p1-soft:#52262C; --p2-soft:#3B2E66; --p3-soft:#54441A; --p4-soft:#1E3556;}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;font-family:"Nunito","Segoe UI",system-ui,sans-serif;font-weight:500;font-size:17px;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:var(--ink);
+  background:linear-gradient(var(--sky) 0 55%,var(--sky2));background-attachment:fixed}
+button{font:inherit;color:inherit;cursor:pointer;border-radius:0}
+button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:14px;position:relative;z-index:1}
+.hidden{display:none!important}
+.cloud{position:fixed;z-index:0;pointer-events:none;width:24px;height:24px;background:#fff;opacity:.85;
+  box-shadow:24px 0 #fff,48px 0 #fff,24px -24px #fff,48px -24px #fff,72px 0 #fff,96px 0 #fff,72px -24px #fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cloud{opacity:.08}}
+:root[data-theme="dark"] .cloud{opacity:.08}
+.px{background:var(--panel);border:4px solid var(--edge);box-shadow:inset -5px -5px 0 var(--panel-d),6px 6px 0 rgba(0,0,0,.25)}
+.pbtn{border:4px solid var(--edge);background:var(--bg,var(--panel));color:var(--fg,var(--ink));font-weight:700;
+  box-shadow:inset -5px -5px 0 rgba(0,0,0,.2),inset 5px 5px 0 rgba(255,255,255,.3)}
+.pbtn:active{box-shadow:inset 5px 5px 0 rgba(0,0,0,.25);transform:translateY(2px)}
+
+/* setup */
+.title{text-align:center;margin:6px 0 0}
+.title h1{font-family:"Pixelify Sans","Nunito",sans-serif;font-size:clamp(2.8rem,10vw,5.2rem);line-height:1.05;margin:0;font-weight:700;color:#fff;
+  text-shadow:0 5px 0 var(--edge),5px 0 0 var(--edge),-5px 0 0 var(--edge),0 -5px 0 var(--edge),5px 5px 0 var(--edge),-5px 5px 0 var(--edge),5px -5px 0 var(--edge),-5px -5px 0 var(--edge),9px 11px 0 rgba(0,0,0,.25)}
+.title p{font-size:1.2rem;margin:14px auto;max-width:34em;line-height:1.4;font-weight:600}
+.settings{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:12px}
+.settings button{font-size:1.05rem;padding:6px 12px}
+.settings button[aria-pressed="true"]{--bg:var(--ink);--fg:var(--panel)}
+.count{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:16px}
+.count button{font-size:1.2rem;padding:8px 16px}
+.count button[aria-pressed="true"]{--bg:var(--good);--fg:#fff}
+.players{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:14px}
+.players[data-n="1"]{grid-template-columns:minmax(0,520px);justify-content:center}
+.players[data-n="4"]{grid-template-columns:repeat(2,1fr)}
+@media (max-width:860px){.players,.players[data-n="4"]{grid-template-columns:1fr}}
+.pcard{padding:14px;border-top:12px solid var(--pc)}
+.pcard .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pcard .head svg{width:38px;height:49px;flex:none}
+.pcard label{display:block;font-weight:700;font-size:1.1rem;margin-bottom:4px}
+.wins{font-size:1rem;color:var(--ink-soft);margin-top:3px;min-height:1.2em}
+.pcard input{width:100%;font:inherit;font-size:1.3rem;font-weight:600;padding:6px 10px;border:4px solid var(--edge);background:#fff;color:#172033;border-radius:0}
+.levels{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.lvl{font-size:1.2rem;padding:4px 0;--bg:var(--sky2)}
+.lvl.wide{grid-column:span 2;font-size:1rem}
+.lvl[aria-pressed="true"]{--bg:var(--pc);--fg:#fff}
+.preview{margin-top:10px;font-size:1.05rem;min-height:2.8em;line-height:1.35}
+.start{display:block;margin:20px auto 30px;font-size:1.9rem;padding:10px 44px;--bg:var(--good);--fg:#fff}
+
+/* game */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.topbar .grp2{display:flex;gap:6px}
+.turn{font-size:clamp(1.15rem,4vw,1.7rem);font-weight:700;padding:4px 16px;border-top:8px solid var(--pc);text-align:center}
+.icon{font-size:1.1rem;padding:5px 10px}
+.field{position:relative;display:grid;grid-template-columns:auto repeat(var(--n),minmax(0,1fr));align-items:end;gap:8px;padding:0 4px;max-width:calc(140px + var(--n) * 170px);margin:0 auto}
+.field::after{content:"";position:absolute;left:-14px;right:-14px;bottom:-26px;height:30px;z-index:0;
+  background:linear-gradient(90deg,transparent 0 46px,var(--stone-d) 46px 50px) 0 0/50px 15px,
+    linear-gradient(90deg,transparent 0 21px,var(--stone-d) 21px 25px) 0 15px/50px 15px,
+    linear-gradient(transparent 0 11px,var(--stone-d) 11px 15px) 0 0/100% 15px,var(--stone);
+  background-repeat:repeat-x;border-top:4px solid var(--edge)}
+.tcol{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;transition:opacity .3s;min-width:0}
+.tcol.idle{opacity:.5}
+.pname{font-weight:700;font-size:clamp(.95rem,3vw,1.2rem);text-align:center;line-height:1.15;background:var(--pc);color:#fff;
+  padding:3px 8px;border:3px solid var(--edge);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score{font-weight:600;font-size:.95rem;margin-top:3px;text-align:center;line-height:1.2}
+.tower{--h:clamp(200px,38vh,390px);height:var(--h);width:min(120px,100%);margin-top:62px;display:flex;flex-direction:column-reverse;gap:3px;position:relative}
+.block{flex:1;border:2px dashed rgba(0,0,0,.18);position:relative}
+.block.on{border:3px solid var(--edge);background-image:var(--tex);background-size:auto 100%;background-repeat:repeat-x;image-rendering:pixelated;
+  box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),inset 4px 4px 0 rgba(255,255,255,.3)}
+.block.drop{animation:drop .45s steps(6)}
+@keyframes drop{from{transform:translateY(-90px)}to{transform:none}}
+.miner{position:absolute;left:50%;width:40px;height:52px;margin-left:-20px;z-index:3;bottom:calc((var(--h) + 3px) * var(--s) / 12);transition:bottom .35s steps(4)}
+.miner svg{width:100%;height:100%;display:block}
+.miner.hop svg{animation:hop .45s steps(4)}
+@keyframes hop{50%{transform:translateY(-18px)}}
+.crown{position:absolute;left:50%;transform:translateX(-50%);top:-30px;font-size:1.7rem;display:none}
+.won .crown{display:block}
+.ruler{height:clamp(200px,38vh,390px);display:flex;flex-direction:column-reverse;gap:3px;position:relative;z-index:1;align-self:end}
+.ruler div{flex:1;display:flex;align-items:center;justify-content:center;min-width:26px;font-weight:700;font-size:.95rem}
+.qcard{margin-top:44px;padding:14px;text-align:center;border-top:12px solid var(--pc)}
+.qcard.lucky{border-color:var(--lucky);animation:glow .8s steps(2) infinite}
+@keyframes glow{50%{border-color:#fff}}
+.badge{display:inline-block;background:var(--lucky);color:#06262A;font-weight:700;font-size:1.05rem;padding:2px 12px;border:3px solid var(--edge);margin-bottom:6px}
+.badge:empty{display:none}
+.qlabel{font-weight:600;font-size:clamp(1.15rem,3.4vw,1.45rem);line-height:1.35;max-width:40em;margin:0 auto}
+.eq{font-size:clamp(2.1rem,7.5vw,3.5rem);font-weight:600;line-height:1.3;margin:8px 0 12px;overflow-x:auto;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.25em .45em}
+.eq sup,.ans sup{font-size:.55em}.eq sub,.ans sub{font-size:.55em}
+.eq .sm{font-size:.62em}
+.col{display:flex;flex-direction:column;align-items:center;gap:.15em}
+.grp{line-height:1.15;letter-spacing:.04em;max-width:100%}
+.basket{border:4px solid var(--edge);padding:2px 8px;background:var(--sky2);font-size:.72em}
+.ill{width:auto;height:clamp(110px,22vw,170px);max-width:100%}
+.ill.die{height:clamp(76px,15vw,104px)}
+.ans .ill{height:64px}
+.ill text{font-family:"Nunito",sans-serif;font-weight:700}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.85em}
+.fr span+span{border-top:.07em solid currentColor;padding-top:.04em;min-width:1.2em}
+.mat{display:inline-grid;gap:0 .6em;padding:0 .35em;border-left:.08em solid currentColor;border-right:.08em solid currentColor;font-size:.75em;text-align:center}
+.binom{display:inline-flex;flex-direction:column;line-height:1;font-size:.8em;padding:0 .3em;border-left:.07em solid;border-right:.07em solid;border-radius:.4em}
+.pyr{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.62em}
+.prow{display:flex;gap:4px}
+.brick{min-width:2.2em;padding:.1em .3em;border:3px solid var(--edge);background:#E9A77B;color:#172033;text-align:center}
+.brick.e{background:#F6D9C3;color:transparent}.brick.q{background:var(--lucky)}
+.grid3{display:grid;grid-template-columns:repeat(3,1.9em);font-size:.66em}
+.grid3 span{border:3px solid var(--edge);text-align:center;background:var(--panel)}
+.grid3 span.q{background:var(--lucky);color:#06262A}
+.answers{display:grid;gap:10px;grid-template-columns:repeat(var(--k),1fr)}
+@media (max-width:560px){.answers{grid-template-columns:repeat(2,1fr)}}
+.ans{--bg:var(--pc-soft);font-size:clamp(1.6rem,6vw,2.4rem);font-weight:700;padding:8px 6px;line-height:1.2;min-height:72px}
+.ans.pic{font-size:clamp(1.3rem,4.2vw,1.9rem)}
+.ans.txt{font-size:clamp(1.15rem,3.6vw,1.5rem)}
+.ans:hover{filter:brightness(1.05)}
+.ans.right{--bg:var(--good);--fg:#fff}
+.ans.wrong{--bg:var(--bad);--fg:#fff;animation:shake .4s steps(4)}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+.feedback{min-height:1.5em;font-weight:700;font-size:1.3rem;margin-top:10px}
+
+/* overlays */
+.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,14,30,.6);z-index:20}
+.winbox,.flashbox{padding:22px 20px;text-align:center;max-width:480px;width:100%;border-top:14px solid var(--pc);animation:pop .4s steps(4)}
+@keyframes pop{from{transform:scale(.5)}}
+.winbox .avatars{display:flex;justify-content:center;gap:10px}
+.winbox .avatars svg{width:56px;height:73px}
+.winbox h2,.flashbox h2{font-size:2.1rem;margin:8px 0 6px;line-height:1.1;font-weight:800}
+.winbox p{margin:0 0 14px;font-size:1.2rem;line-height:1.4}
+.flashbox{border-top-color:var(--lucky)}
+.flashbox .big{font-size:3.4rem;line-height:1}
+.flashbox .ftext{font-size:1.4rem;line-height:1.45;margin:6px 0 14px;font-weight:600}
+.flashbox .fans{font-size:1.45rem;font-weight:700;background:var(--sky2);border:4px solid var(--edge);padding:8px 10px;margin:0 0 14px}
+.flashbox .who{font-size:1.05rem;color:var(--ink-soft);margin:-8px 0 14px}
+.btn{font-size:1.3rem;padding:8px 18px;margin:4px;--bg:var(--good);--fg:#fff}
+.btn.alt{--bg:var(--sky2);--fg:var(--ink)}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:15}
+.pop{position:fixed;left:50%;top:38%;z-index:16;pointer-events:none;font-family:"Pixelify Sans","Nunito",sans-serif;font-size:clamp(3rem,12vw,6rem);color:#fff;
+  text-shadow:0 4px 0 #172033,4px 0 0 #172033,-4px 0 0 #172033,0 -4px 0 #172033,6px 8px 0 rgba(0,0,0,.25);animation:popT 1s ease-out forwards}
+@keyframes popT{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-50%) scale(1.15);opacity:1}70%{transform:translate(-50%,-60%) scale(1);opacity:1}100%{transform:translate(-50%,-90%) scale(.9);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="cloud" style="top:70px;left:6%"></div>
+<div class="cloud" style="top:130px;right:14%"></div>
+<div class="cloud" style="top:40px;left:58%;transform:scale(.7)"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<main id="setup" class="wrap">
+  <div class="title"><h1 id="tTitle"></h1><p id="tSub"></p></div>
+  <div class="settings" id="settings"></div>
+  <div class="count" id="count" role="group"></div>
+  <div class="players" id="players"></div>
+  <button class="pbtn start" id="startBtn"></button>
+</main>
+
+<main id="game" class="wrap hidden">
+  <div class="topbar">
+    <button class="pbtn icon" id="backBtn"></button>
+    <div class="turn px" id="turnLabel"></div>
+    <div class="grp2"><button class="pbtn icon" id="fxBtn"></button><button class="pbtn icon" id="soundBtn"></button></div>
+  </div>
+  <div class="field" id="field"></div>
+  <section class="qcard px" id="qcard">
+    <div class="badge" id="badge"></div>
+    <div class="qlabel" id="qlabel"></div>
+    <div class="eq" id="eq"></div>
+    <div class="answers" id="answers"></div>
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+  </section>
+</main>
+
+<div class="overlay hidden" id="overlay">
+  <div class="winbox px" id="winbox">
+    <div class="avatars" id="winAv"></div>
+    <h2 id="winTitle"></h2><p id="winText"></p>
+    <button class="pbtn btn" id="againBtn"></button>
+    <button class="pbtn btn alt" id="newBtn"></button>
+  </div>
+</div>
+<div class="overlay hidden" id="flash">
+  <div class="flashbox px" role="dialog" aria-modal="true" aria-labelledby="fTitle">
+    <div class="big" id="fIcon"></div>
+    <h2 id="fTitle"></h2>
+    <div class="ftext" id="fText"></div>
+    <div class="who hidden" id="fWho"></div>
+    <div class="fans hidden" id="fAns"></div>
+    <button class="pbtn btn" id="fShow"></button>
+    <button class="pbtn btn" id="fCont"></button>
+  </div>
+</div>
+
+<script>
+/* ================= PURE PART (no DOM) ================= */
+const GOAL=12, ADULT=11, PRO=12, ULTRA=13;
+let LANG='en', LV=0;
+const r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[r(0,a.length-1)];
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=r(0,i);[a[i],a[j]]=[a[j],a[i]]}return a}
+const picks=(arr,k)=>shuffle([...arr]).slice(0,k);
+const tr=(en,pl,es)=>LANG==='pl'?pl:LANG==='es'?es:en;
+function grp3(n){const s=String(Math.abs(n));return Math.abs(n)>=10000?s.replace(/\B(?=(\d{3})+(?!\d))/g,'\u2009'):s}
+const fmt=n=>(n<0?'−':'')+grp3(n);
+const par=n=>n<0?'('+fmt(n)+')':fmt(n);
+const sgn=n=>n<0?`− ${-n}`:`+ ${n}`;
+const nz=(a,b)=>{let v=0;while(v===0)v=r(a,b);return v};
+const dec=x=>{let s=String(+(+x).toFixed(3));if(LANG!=='en')s=s.replace('.',',');return s.replace('-','−')};
+const DIV=()=>LANG==='pl'?':':'÷';
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const tm=(h,m)=>`${h}:${String(m).padStart(2,'0')}`;
+const fr=(a,b)=>`<span class="fr"><span>${a}</span><span>${b}</span></span>`;
+const frs=(a,b)=>{const g=gcd(a,b)||1;a/=g;b/=g;return b===1?String(a):fr(a,b)};
+function roman(n){const m=[[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let s='';for(const[v,t]of m)while(n>=v){s+=t;n-=v}return s}
+const isPrime=n=>{if(n<2)return false;for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true};
+const C2=(n,k)=>{let v=1;for(let i=0;i<k;i++)v=v*(n-i)/(i+1);return Math.round(v)};
+
+const ANIM=['🐸','🐞','🐟','🐥','🐢','🦊','🐝','🐙','🦖','🐧','🦋','🐌','🐰','🐼','🦉','🐨'];
+const FOOD=['🍎','🍌','🍓','🍪','🍩','🧁','🍉','🥕','🍒','🍋','🍇','🥨','🍐','🌽'];
+const VEH=['🚗','🚕','🚌','🚲','✈️','🚀','🚂','🚁','⛵','🚜','🛵','🚒'];
+const THING=['⭐','🎈','⚽','🪁','💎','🍄','🌸','🎁','🔔','🧩'];
+const ALL=[...ANIM,...FOOD,...THING];
+
+const DAYS={en:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],pl:['poniedziałek','wtorek','środa','czwartek','piątek','sobota','niedziela'],es:['lunes','martes','miércoles','jueves','viernes','sábado','domingo']};
+const MONTHS={en:['January','February','March','April','May','June','July','August','September','October','November','December'],pl:['styczeń','luty','marzec','kwiecień','maj','czerwiec','lipiec','sierpień','wrzesień','październik','listopad','grudzień'],es:['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']};
+const ORD={en:['first','second','third','fourth','fifth'],pl:['pierwszy','drugi','trzeci','czwarty','piąty'],es:['primero','segundo','tercero','cuarto','quinto']};
+const SHAPES=()=>[[tr('circle','koło','círculo'),'🔴'],[tr('triangle','trójkąt','triángulo'),'🔺'],[tr('square','kwadrat','cuadrado'),'🟦'],[tr('star','gwiazda','estrella'),'⭐'],[tr('heart','serce','corazón'),'💜']];
+
+const rows=(e,n,per=5)=>{let s='';for(let i=0;i<n;i++){s+=e;if((i+1)%per===0&&i<n-1)s+='<br>'}return `<span class="grp">${s}</span>`};
+
+/* ---------- drawings ---------- */
+const PIP={tl:[16,16],tr:[44,16],ml:[16,30],mr:[44,30],bl:[16,44],br:[44,44],c:[30,30]};
+const PIPS={0:[],1:['c'],2:['tl','br'],3:['tl','c','br'],4:['tl','tr','bl','br'],5:['tl','tr','c','bl','br'],6:['tl','tr','ml','mr','bl','br']};
+function die(n){return `<svg class="ill die" viewBox="0 0 60 60" role="img" aria-label="${n}"><rect x="3" y="3" width="54" height="54" rx="10" style="fill:#fff;stroke:#172033;stroke-width:4"/>${PIPS[n].map(k=>`<circle cx="${PIP[k][0]}" cy="${PIP[k][1]}" r="5.5" style="fill:#172033"/>`).join('')}</svg>`}
+function domino(a,b){const half=(n,ox)=>PIPS[n].map(k=>`<circle cx="${ox+PIP[k][0]}" cy="${PIP[k][1]+2}" r="5" style="fill:#172033"/>`).join('');
+  return `<svg class="ill die" viewBox="0 0 124 64" role="img" aria-label="domino"><rect x="3" y="3" width="118" height="58" rx="9" style="fill:#fff;stroke:#172033;stroke-width:4"/><line x1="62" y1="8" x2="62" y2="56" style="stroke:#172033;stroke-width:3"/>${half(a,1)}${half(b,63)}</svg>`}
+function tenFrame(n){let s=`<svg class="ill" viewBox="0 0 164 70" role="img" aria-label="ten frame">`;
+  for(let i=0;i<10;i++){const x=4+(i%5)*31.5,y=4+Math.floor(i/5)*31;s+=`<rect x="${x}" y="${y}" width="31.5" height="31" style="fill:#fff;stroke:#172033;stroke-width:3"/>`;
+    if(i<n)s+=`<circle cx="${x+15.75}" cy="${y+15.5}" r="10" style="fill:#D9403A"/>`}return s+'</svg>'}
+function clock(h,m){const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;
+  let s=`<svg class="ill" viewBox="0 0 100 100" role="img" aria-label="clock"><circle cx="50" cy="50" r="46" style="fill:#fff;stroke:#172033;stroke-width:4"/>`;
+  for(let i=1;i<=12;i++){const a=i*30*Math.PI/180;s+=`<text x="${50+36*Math.sin(a)}" y="${50-36*Math.cos(a)+5}" text-anchor="middle" style="font-size:13px;fill:#172033">${i}</text>`}
+  s+=`<line x1="50" y1="50" x2="${50+22*Math.sin(ha)}" y2="${50-22*Math.cos(ha)}" style="stroke:#D9403A;stroke-width:6;stroke-linecap:round"/><line x1="50" y1="50" x2="${50+33*Math.sin(ma)}" y2="${50-33*Math.cos(ma)}" style="stroke:#172033;stroke-width:3.5;stroke-linecap:round"/>`;
+  return s+'<circle cx="50" cy="50" r="4" style="fill:#172033"/></svg>'}
+function pizza(k,d){let s=`<svg class="ill" viewBox="0 0 100 100" role="img" aria-label="pizza ${k}/${d}">`;
+  for(let i=0;i<d;i++){const a0=i/d*2*Math.PI-Math.PI/2,a1=(i+1)/d*2*Math.PI-Math.PI/2;
+    s+=`<path d="M50 50 L${50+44*Math.cos(a0)} ${50+44*Math.sin(a0)} A44 44 0 0 1 ${50+44*Math.cos(a1)} ${50+44*Math.sin(a1)} Z" style="fill:${i<k?'#F2A33A':'#FFF3D6'};stroke:#172033;stroke-width:3"/>`;
+    if(i<k){const am=(a0+a1)/2;s+=`<circle cx="${50+26*Math.cos(am)}" cy="${50+26*Math.sin(am)}" r="5" style="fill:#C8302A"/>`}}return s+'</svg>'}
+function rectPic(w,h,u='m'){const W=Math.min(200,w*18),H=Math.min(120,h*18);
+  return `<svg class="ill" viewBox="0 0 ${W+80} ${H+50}" role="img" aria-label="rectangle"><rect x="10" y="30" width="${W}" height="${H}" style="fill:#9ED8A0;stroke:#172033;stroke-width:4"/>
+  <text x="${10+W/2}" y="22" text-anchor="middle" style="font-size:20px;fill:var(--ink)">${w} ${u}</text><text x="${W+18}" y="${30+H/2+7}" style="font-size:20px;fill:var(--ink)">${h} ${u}</text></svg>`}
+function triPic(a,b){return `<svg class="ill" viewBox="0 0 220 130" role="img" aria-label="triangle"><polygon points="12,118 208,118 80,14" style="fill:#FFE27A;stroke:#172033;stroke-width:4"/>
+  <text x="34" y="110" style="font-size:18px;fill:#172033">${a}°</text><text x="150" y="110" style="font-size:18px;fill:#172033">${b}°</text><text x="72" y="56" style="font-size:22px;fill:#172033">?</text></svg>`}
+function rtriPic(a,b){return `<svg class="ill" viewBox="0 0 220 140" role="img" aria-label="right triangle"><polygon points="30,120 190,120 30,20" style="fill:#B7E3F7;stroke:#172033;stroke-width:4"/>
+  <rect x="30" y="104" width="16" height="16" style="fill:none;stroke:#172033;stroke-width:2.5"/><text x="4" y="76" style="font-size:18px;fill:var(--ink)">${a}</text><text x="104" y="138" style="font-size:18px;fill:var(--ink)">${b}</text><text x="118" y="64" style="font-size:22px;fill:#172033">?</text></svg>`}
+function polyPic(n){const pts=[...Array(n)].map((_,i)=>{const a=i/n*2*Math.PI-Math.PI/2;return `${50+42*Math.cos(a)},${52+42*Math.sin(a)}`}).join(' ');
+  return `<svg class="ill" viewBox="0 0 100 100" role="img" aria-label="polygon"><polygon points="${pts}" style="fill:#C9B6F7;stroke:#172033;stroke-width:4;stroke-linejoin:round"/></svg>`}
+function circlePic(lbl){return `<svg class="ill" viewBox="0 0 120 110" role="img" aria-label="circle"><circle cx="60" cy="55" r="46" style="fill:#FFE8A8;stroke:#172033;stroke-width:4"/><line x1="14" y1="55" x2="106" y2="55" style="stroke:#D9403A;stroke-width:3.5"/><circle cx="60" cy="55" r="3.5" style="fill:#172033"/><text x="60" y="47" text-anchor="middle" style="font-size:15px;fill:#172033">${lbl}</text></svg>`}
+function coinsPic(vals){const col=v=>v>=10?'#F2C84B':v===5?'#C9CDD4':'#D98A4E';
+  return `<svg class="ill die" viewBox="0 0 ${vals.length*56+4} 60" role="img" aria-label="coins">${vals.map((v,i)=>`<circle cx="${30+i*56}" cy="30" r="25" style="fill:${col(v)};stroke:#172033;stroke-width:3.5"/><circle cx="${30+i*56}" cy="30" r="19" style="fill:none;stroke:rgba(0,0,0,.25);stroke-width:2"/><text x="${30+i*56}" y="38" text-anchor="middle" style="font-size:22px;fill:#172033">${v}</text>`).join('')}</svg>`}
+function towersPic(hs){const C=['#E53935','#1E88E5','#43A047'];let s=`<svg class="ill" viewBox="0 0 170 130" role="img" aria-label="towers">`;
+  hs.forEach((h,i)=>{for(let j=0;j<h;j++)s+=`<rect x="${12+i*54}" y="${116-(j+1)*15}" width="38" height="14" style="fill:${C[i]};stroke:#172033;stroke-width:2.5"/>`});
+  return s+`<line x1="2" y1="117" x2="168" y2="117" style="stroke:var(--ink);stroke-width:3"/></svg>`}
+const COLSQ=['🟥','🟦','🟩'];
+
+/* ---------- builders ---------- */
+function choices(ans,trap,min=0,neg=false){
+  const n=LV<=2?3:4,set=new Set([ans]),allowNeg=neg||ans<0;
+  const offs=LV<=4?[1,-1,2,-2,3]:LV>=ADULT?[10,-10,1,-1,2,-2,20,-20]:[1,-1,2,-2,10,-10,5,-5];
+  const c=[];if(trap!=null)c.push(trap);
+  if(Math.abs(ans)>40&&LV<ADULT){const p=Math.round(ans*.1);c.push(ans+p,ans-p)}
+  shuffle(offs).forEach(o=>c.push(ans+o));
+  for(const v of c){if(set.size>=n)break;if(!Number.isInteger(v)||(!allowNeg&&v<min))continue;set.add(v)}
+  let g=0;while(set.size<n&&g++<300){const v=ans+r(-12,12);if(allowNeg||v>=min)set.add(v)}
+  return shuffle([...set]);
+}
+function N(label,html,ans,o={}){return {label,html,ans:String(ans),opts:choices(ans,o.trap,o.min??0,o.neg).map(v=>({v:String(v),h:fmt(v)}))}}
+function T(label,html,ans,wrong,cls='',k=4){const w=[...new Set(wrong.map(String))].filter(x=>x!==String(ans)).slice(0,k-1);
+  return {label,html,ans:String(ans),opts:shuffle([String(ans),...w]).map(v=>({v,h:v})),cls}}
+const WORK=()=>tr('Work it out','Oblicz','Calcula');
+const calc=(expr,ans,o)=>N(WORK(),`<span>${expr} = ?</span>`,ans,o);
+
+/* ---------- question types ---------- */
+const TY=[];const add=(a,b,f)=>TY.push({a,b,f});
+
+/* ===== VISUAL (0-4) ===== */
+add(0,4,l=>{const e=pick(ALL),R=[[1,5],[3,10],[5,12],[8,15],[10,20]][l],k=r(R[0],R[1]);
+  return N(tr(`How many ${e}?`,`Ile jest ${e}?`,`¿Cuántos ${e} hay?`),rows(e,k,l>=4?10:5),k,{min:1})});
+add(0,2,()=>{const e=pick(FOOD),a=r(1,3),b=a+r(2,3);return T(tr(`Where are there more ${e}?`,`Gdzie jest więcej ${e}?`,`¿Dónde hay más ${e}?`),'',e.repeat(b),[e.repeat(a)],'pic',2)});
+add(1,3,()=>{const e=pick(ANIM),a=r(1,4),b=a+r(2,3);return T(tr(`Where are there fewer ${e}?`,`Gdzie jest mniej ${e}?`,`¿Dónde hay menos ${e}?`),'',e.repeat(a),[e.repeat(b)],'pic',2)});
+add(0,2,()=>{const[a,b]=picks(ANIM,2),pos=r(0,3);return {label:tr('Which one is different?','Który jest inny?','¿Cuál es diferente?'),html:'',ans:String(pos),opts:[0,1,2,3].map(i=>({v:String(i),h:i===pos?b:a}))}});
+add(2,4,()=>{const G=[ANIM,FOOD,VEH],g=pick(G),o=pick(G.filter(x=>x!==g));return T(tr('Which one does not belong?','Co tu nie pasuje?','¿Cuál no encaja?'),'',pick(o),picks(g,3))});
+add(0,2,()=>{const s=picks(SHAPES(),3);return T(tr(`Tap the ${s[0][0]}`,`Pokaż: ${s[0][0]}`,`Toca: ${s[0][0]}`),'',s[0][1],[s[1][1],s[2][1]],'',3)});
+add(1,3,l=>{const sh=['🔺','🟦','🔴','⭐','💜'],tg=pick(sh),k=r(2,l+4),it=Array(k).fill(tg);const tot=k+r(3,6);while(it.length<tot)it.push(pick(sh.filter(x=>x!==tg)));shuffle(it);
+  return N(tr(`Count only the ${tg}`,`Policz tylko ${tg}`,`Cuenta solo los ${tg}`),`<span class="grp">${it.join('')}</span>`,k,{min:1})});
+add(0,2,()=>{const[a,b,c]=picks(ALL,3),len=r(4,6);let s='';for(let i=0;i<len;i++)s+=i%2?b:a;return T(tr('What comes next?','Co będzie dalej?','¿Qué sigue?'),`<span class="grp">${s}❓</span>`,len%2?b:a,[len%2?a:b,c],'',3)});
+add(2,4,()=>{const[a,b,c,d]=picks(ALL,4),pat=pick([[a,b,c],[a,a,b],[a,b,b]]),len=r(4,7);let s='';for(let i=0;i<len;i++)s+=pat[i%3];return T(tr('What comes next?','Co będzie dalej?','¿Qué sigue?'),`<span class="grp">${s}❓</span>`,pat[len%3],[a,b,c,d],'',3)});
+add(3,4,l=>{const st=l===3?1:pick([1,2]),sp=l===3?1:pick([1,2]),q=[0,1,2].map(i=>st+i*sp);
+  return N(tr('How many dots come next?','Ile kropek będzie dalej?','¿Cuántos puntos van después?'),`<span class="grp sm">${q.map(n=>'🔵'.repeat(n)).join(' | ')} | ❓</span>`,st+3*sp,{min:1})});
+add(1,3,l=>{const e=pick(FOOD),m=l===1?5:10,a=r(1,m-2),b=r(1,m-a);return N(tr(`How many ${e} altogether?`,`Ile ${e} razem?`,`¿Cuántos ${e} en total?`),`${rows(e,a)}<span>+</span>${rows(e,b)}`,a+b,{min:1})});
+add(2,3,()=>{const t=r(3,8),p=r(1,t-1);return N(tr('Some balloons popped! How many 🎈 are left?','Część balonów pękła! Ile 🎈 zostało?','¡Algunos globos explotaron! ¿Cuántos 🎈 quedan?'),`<span class="grp">${'🎈'.repeat(t-p)}${'💥'.repeat(p)}</span>`,t-p)});
+add(3,4,()=>{const n=r(4,10),k=r(2,n-2);return N(tr(`🐭 eats ${k} of them. How many 🍪 are left?`,`🐭 zjada: ${k}. Ile 🍪 zostało?`,`🐭 se come ${k}. ¿Cuántas 🍪 quedan?`),rows('🍪',n),n-k)});
+add(1,2,()=>{const e=pick(ANIM),n=r(2,6);return T(tr(`Which group has ${n}?`,`Która grupa ma ${n}?`,`¿Qué grupo tiene ${n}?`),'',e.repeat(n),[e.repeat(n+1),e.repeat(n>2?n-1:n+2)],'pic',3)});
+add(0,3,l=>{const H={5:'✋',2:'✌️',1:'☝️'},p=[];let t=0;for(let i=0;i<(l<=1?l+1:3);i++){const v=pick(l<=1?[1,2]:[1,2,5]);p.push(H[v]);t+=v}
+  return N(tr('How many fingers are up?','Ile palców jest w górze?','¿Cuántos dedos hay levantados?'),`<span>${p.join(' ')}</span>`,t,{min:1})});
+add(0,2,l=>{const n=r(1,l===0?3:6);return N(tr('How many dots?','Ile kropek?','¿Cuántos puntos?'),die(n),n,{min:1})});
+add(2,4,()=>{const a=r(1,6),b=r(1,6);return N(tr('Add the dice!','Dodaj oczka!','¡Suma los dados!'),`${die(a)}<span>+</span>${die(b)}`,a+b,{min:2})});
+add(0,2,()=>{const[a,b]=picks([1,2,3,4,5,6],2);return T(tr('Which die has more dots?','Która kostka ma więcej kropek?','¿Qué dado tiene más puntos?'),'',die(Math.max(a,b)),[die(Math.min(a,b))],'pic',2)});
+add(2,3,()=>{const n=r(2,10);return N(tr('How many red dots?','Ile jest czerwonych kropek?','¿Cuántos puntos rojos hay?'),tenFrame(n),n,{min:1})});
+add(3,4,()=>{const n=r(3,9);return N(tr('How many more dots fill all 10 boxes?','Ile kropek brakuje do 10?','¿Cuántos puntos faltan para llenar las 10 casillas?'),tenFrame(n),10-n,{min:1})});
+add(2,3,()=>{const n=r(1,8);return N(tr('🐸 hops to the next number. Where does it land?','🐸 skacze na następną liczbę. Gdzie wyląduje?','🐸 salta al siguiente número. ¿Dónde cae?'),`<span>${n} → ${n+1} → ❓</span>`,n+2)});
+add(2,3,l=>{const n=r(2,l===2?10:20);return N(tr('What number comes just before?','Jaka liczba jest tuż przed?','¿Qué número va justo antes?'),`<span>❓ → ${n}</span>`,n-1)});
+add(2,3,()=>{const[a,b]=picks([...Array(15)].map((_,i)=>i+1),2);return T(tr('Which number is bigger?','Która liczba jest większa?','¿Qué número es mayor?'),'',Math.max(a,b),[Math.min(a,b)],'',2)});
+add(2,3,()=>{const[a,b]=picks([...Array(15)].map((_,i)=>i+1),2);return T(tr('Which number is smaller?','Która liczba jest mniejsza?','¿Qué número es menor?'),'',Math.min(a,b),[Math.max(a,b)],'',2)});
+add(3,5,l=>{let L,R2,va,vb;if(l<5){va=r(1,20);vb=Math.random()<.2?va:r(1,20);L=va;R2=vb}else{const a=r(3,9),b=r(3,9);va=a+b;vb=va+pick([-1,0,1]);L=`${a} + ${b}`;R2=vb}
+  return T(tr('Which sign fits? The 🐊 mouth eats the bigger one','Jaki znak pasuje? Paszcza 🐊 zjada większą','¿Qué signo va? La boca del 🐊 se come al mayor'),`<span>${L} ❓ ${R2}</span>`,va>vb?'>':va<vb?'<':'=',['>','<','='],'',3)});
+add(4,6,()=>{const g=r(2,4),p=r(2,5),e=pick(['🍬','🍓','🥕','🐟','⭐']);return N(tr(`${g} baskets, ${p} in each. How many ${e}?`,`Koszyki: ${g}, w każdym: ${p}. Ile ${e}?`,`${g} cestas con ${p} en cada una. ¿Cuántos ${e}?`),Array(g).fill(`<span class="basket">${e.repeat(p)}</span>`).join(''),g*p,{trap:g+p})});
+add(4,6,()=>{const k=r(2,3),m=r(2,4);return N(tr('Share fairly! How many 🍕 does each 🐻 get?','Podziel po równo! Ile 🍕 dostanie każdy 🐻?','¡Reparte igual! ¿Cuántas 🍕 recibe cada 🐻?'),`${rows('🍕',k*m,6)}<span>➗</span><span class="grp">${'🐻'.repeat(k)}</span>`,m,{min:1})});
+add(4,6,()=>{const e=pick(FOOD),v=r(1,5),k=r(2,3);return N(tr(`Mystery emoji! What number is ${e}?`,`Tajemnicze emoji! Ile to ${e}?`,`¡Emoji misterioso! ¿Cuánto vale ${e}?`),`<span>${Array(k).fill(e).join(' + ')} = ${v*k}</span>`,v,{min:1})});
+add(4,4,()=>{const h=r(1,12);return T(tr('What time is it?','Która godzina?','¿Qué hora es?'),clock(h,0),tm(h,0),picks([...Array(12)].map((_,i)=>i+1).filter(x=>x!==h),3).map(x=>tm(x,0)))});
+add(3,4,()=>{const s=pick([2,5,10]),st=s*r(0,2);return N(tr('Count by jumps. What is missing?','Licz skokami. Czego brakuje?','Cuenta a saltos. ¿Qué falta?'),`<span>${st}, ${st+s}, ${st+2*s}, ❓</span>`,st+3*s)});
+add(4,6,l=>{const pool=l===4?[1,2,5]:[1,2,5,10,20],k=l===4?r(2,3):r(3,5),v=[...Array(k)].map(()=>pick(pool)).sort((a,b)=>b-a);
+  return N(tr('How much money is it?','Ile to pieniędzy?','¿Cuánto dinero hay?'),coinsPic(v),v.reduce((a,b)=>a+b,0),{min:1})});
+add(0,2,l=>{const hs=picks([2,3,4,5,6,7],3),tall=l===0||Math.random()<.5,t=hs.indexOf(tall?Math.max(...hs):Math.min(...hs));
+  return T(tall?tr('Which tower is the tallest?','Która wieża jest najwyższa?','¿Qué torre es la más alta?'):tr('Which tower is the shortest?','Która wieża jest najniższa?','¿Qué torre es la más baja?'),towersPic(hs),COLSQ[t],COLSQ,'',3)});
+add(2,4,()=>{const v=picks(VEH,5),k=r(0,4),o=ORD[LANG][k];return T(tr(`Which one is ${o} from the flag?`,`Który jest ${o} od flagi?`,`¿Cuál es el ${o} desde la bandera?`),`<span class="grp">🏁${v.join('')}</span>`,v[k],v,'',4)});
+add(0,2,()=>{const[a,b]=pick([['🐘','🐭'],['🐳','🐟'],['🏠','⚽'],['🚌','🚲'],['🦒','🐔'],['🌳','🌷'],['🚀','🎈'],['🐻','🐝']]);return T(tr('Which is bigger in real life?','Co jest większe naprawdę?','¿Qué es más grande en la vida real?'),'',a,[b],'',2)});
+add(3,6,l=>{const n=r(3,l<5?5:8);return N(tr('How many sides does it have?','Ile ma boków?','¿Cuántos lados tiene?'),polyPic(n),n,{min:3})});
+add(2,5,l=>{const st=r(1,l===2?5:l===5?60:15),miss=r(1,3),arr=[...Array(5)].map((_,i)=>st+i),ans=arr[miss];arr[miss]='❓';return N(tr('Which number is missing?','Jakiej liczby brakuje?','¿Qué número falta?'),`<span>${arr.join('  ')}</span>`,ans)});
+add(3,6,()=>{const[e,f]=picks(ANIM,2),a=r(1,5),b=a+r(1,5);return N(tr(`How many more ${f} than ${e}?`,`O ile więcej jest ${f} niż ${e}?`,`¿Cuántos ${f} más que ${e} hay?`),`<div class="col"><span class="grp">${e.repeat(a)}</span><span class="grp">${f.repeat(b)}</span></div>`,b-a,{min:1})});
+add(4,6,l=>{const a=r(3,l===4?8:15),b=r(1,a-1),c=r(1,l===4?4:9);return N(tr(`${a} 🧍 are on the 🚌. ${b} get off, ${c} get on. How many now?`,`W 🚌 jest ${a} 🧍. Wysiada: ${b}, wsiada: ${c}. Ile jest teraz?`,`En el 🚌 hay ${a} 🧍. Bajan ${b} y suben ${c}. ¿Cuántos hay ahora?`),`<span>🚏 🚌💨</span>`,a-b+c)});
+add(3,5,()=>{const a=r(0,6),b=r(1,6);return N(tr('How many dots on the domino?','Ile kropek ma domino?','¿Cuántos puntos tiene la ficha?'),domino(a,b),a+b,{min:1})});
+add(3,5,l=>{const opts=[[1,2,tr('half','połowę','la mitad')],[1,4,tr('a quarter','ćwierć','un cuarto')],[3,4,tr('three quarters','trzy czwarte','tres cuartos')]];const t=l===3?opts[0]:pick(opts);
+  const all=[[1,2],[1,4],[3,4],[1,3],[2,3]].map(([a,b])=>pizza(a,b));return T(tr(`Which pizza has ${t[2]} in orange?`,`Która pizza ma na pomarańczowo ${t[2]}?`,`¿Qué pizza tiene ${t[2]} en naranja?`),'',pizza(t[0],t[1]),all,'pic',3)});
+add(4,6,l=>{const D=DAYS[LANG],d=r(0,6),k=l===4?pick([1,-1]):r(2,4),ans=D[((d+k)%7+7)%7];
+  const q=k===1?tr('What day is tomorrow?','Jaki dzień będzie jutro?','¿Qué día será mañana?'):k===-1?tr('What day was yesterday?','Jaki dzień był wczoraj?','¿Qué día fue ayer?'):tr(`What day will it be in ${k} days?`,`Jaki dzień będzie za ${k} dni?`,`¿Qué día será dentro de ${k} días?`);
+  return T(tr(`Today is ${D[d]}. `,`Dziś jest ${D[d]}. `,`Hoy es ${D[d]}. `)+q,'<span>📅</span>',ans,picks(D,6),'txt')});
+add(6,7,()=>{const M=MONTHS[LANG],m=r(0,11),k=pick([1,2,3,4]),ans=M[(m+k)%12];
+  const q=k===1?tr('Which month comes next?','Jaki miesiąc będzie następny?','¿Qué mes viene después?'):tr(`Which month will it be in ${k} months?`,`Jaki miesiąc będzie za ${k} miesiące?`,`¿Qué mes será dentro de ${k} meses?`);
+  return T(tr(`It is ${M[m]}. `,`Jest ${M[m]}. `,`Estamos en ${M[m]}. `)+q,'<span>🗓️</span>',ans,picks(M,8),'txt')});
+
+/* ===== CALCULATION (5-10) ===== */
+add(5,8,l=>{let a,b;if(l===5){a=r(5,15);b=r(2,20-a)}else if(l===6){a=r(20,70);b=r(10,99-a)}else if(l===7){a=r(25,75);b=r(15,99-a)}else{a=r(100,500);b=r(50,400)}return calc(`${a} + ${b}`,a+b)});
+add(5,8,l=>{let a,b;if(l===5){a=r(10,20);b=r(2,a-2)}else if(l===6){a=r(30,99);b=r(10,a-5)}else if(l===7){a=r(50,99);b=r(15,a-10)}else{a=r(200,900);b=r(50,a-50)}return calc(`${a} − ${b}`,a-b)});
+add(5,7,l=>{const b=r(3,l===5?9:30),c=r(b+3,l===5?20:b+60);return N(tr('What number goes in the box?','Jaka liczba pasuje do ramki?','¿Qué número va en la casilla?'),`<span>□ + ${b} = ${c}</span>`,c-b)});
+add(6,8,l=>{const a=r(20,l===6?50:150),c=r(5,a-5);return N(tr('What number goes in the box?','Jaka liczba pasuje do ramki?','¿Qué número va en la casilla?'),`<span>${a} − □ = ${c}</span>`,a-c)});
+add(5,6,l=>{const n=r(3,l===5?12:45);return N(tr('🪞 The magic mirror doubles it!','🪞 Magiczne lustro podwaja liczbę!','🪞 ¡El espejo mágico lo duplica!'),`<span>🪞 ${n} → ?</span>`,2*n,{trap:n+1})});
+add(5,7,l=>{const n=2*r(2,l===5?10:50);return N(tr('✂️ Cut it in half!','✂️ Podziel na pół!','✂️ ¡Pártelo por la mitad!'),`<span>✂️ ${n} → ?</span>`,n/2,{trap:n-2})});
+add(5,7,l=>{const h=r(1,12),m=l===5?pick([0,30]):l===6?pick([0,15,30,45]):5*r(0,11);const wrong=[tm(h,(m+30)%60),tm(h%12+1,m),tm(h,(m+15)%60),tm((h+5)%12+1,m),tm(m/5||12,h*5%60)];
+  return T(tr('What time is it?','Która godzina?','¿Qué hora es?'),clock(h,m),tm(h,m),wrong)});
+add(5,6,l=>{const n=r(1,l===5?20:99);return T(tr('Is it even or odd?','Parzysta czy nieparzysta?','¿Es par o impar?'),`<span>${n}</span>`,n%2?tr('Odd','Nieparzysta','Impar'):tr('Even','Parzysta','Par'),[tr('Odd','Nieparzysta','Impar'),tr('Even','Parzysta','Par')],'txt',2)});
+add(5,7,()=>{const a=r(30,95);return N(tr('What number is in between?','Jaka liczba jest pomiędzy?','¿Qué número está en medio?'),`<span>${a} ❓ ${a+2}</span>`,a+1)});
+add(5,6,()=>{const t=r(1,9),o=r(0,9);return N(tr('What number is it?','Jaka to liczba?','¿Qué número es?'),`<span class="sm">${tr('Tens','Dziesiątki','Decenas')}: ${t} &nbsp; ${tr('Ones','Jedności','Unidades')}: ${o}</span>`,10*t+o,{trap:10*o+t})});
+add(6,6,()=>{const m=pick([2,5,10]),b=r(1,10);return calc(`${b} × ${m}`,b*m,{trap:b+m})});
+add(7,8,()=>{const a=r(2,10),b=r(2,10);return calc(`${a} × ${b}`,a*b,{trap:a+b})});
+add(7,9,l=>{const b=r(2,l===7?10:12),c=r(2,l===9?15:10);return calc(`${b*c} ${DIV()} ${b}`,c)});
+add(7,9,()=>{const a=r(3,9),b=r(3,9);return N(tr('What number goes in the box?','Jaka liczba pasuje do ramki?','¿Qué número va en la casilla?'),`<span>${a} × □ = ${a*b}</span>`,b)});
+add(5,8,()=>{const[e,f]=picks(FOOD,2),a=r(2,9),b=r(1,9);return N(tr(`Emoji puzzle! What is ${f}?`,`Zagadka! Ile to ${f}?`,`¡Acertijo! ¿Cuánto vale ${f}?`),`<div class="col sm"><span>${e} + ${e} = ${2*a}</span><span>${e} + ${f} = ${a+b}</span></div>`,b,{min:1})});
+add(8,10,()=>{const[e,f,g]=picks(FOOD,3),a=r(2,9),b=r(1,9),c=r(1,9);return N(tr(`Emoji puzzle! What is ${g}?`,`Zagadka! Ile to ${g}?`,`¡Acertijo! ¿Cuánto vale ${g}?`),`<div class="col sm"><span>${e} + ${e} + ${e} = ${3*a}</span><span>${e} + ${f} = ${a+b}</span><span>${f} × ${g} = ${b*c}</span></div>`,c,{min:1})});
+add(6,8,()=>{const d=pick([2,3,4,6,8]),k=r(1,d-1);return T(tr('What part of the pizza is orange?','Jaka część pizzy jest pomarańczowa?','¿Qué parte de la pizza es naranja?'),pizza(k,d),fr(k,d),[fr(d-k,d),fr(k+1,d),fr(k,d+2),fr(d,k)])});
+add(5,7,()=>{const s=r(3,6),st=r(1,10);return N(tr('Find the pattern. What comes next?','Znajdź regułę. Co dalej?','Encuentra la regla. ¿Qué sigue?'),`<span>${st}, ${st+s}, ${st+2*s}, ${st+3*s}, ?</span>`,st+4*s)});
+add(8,9,()=>{const t=r(0,2);let q,a;if(t===0){const s=r(1,5);q=[s,2*s,4*s,8*s];a=16*s}else if(t===1){const s=r(60,99),k=r(4,9);q=[s,s-k,s-2*k,s-3*k];a=s-4*k}else{const s=r(1,5);q=[s,s+1,s+3,s+6];a=s+10}
+  return N(tr('Find the pattern. What comes next?','Znajdź regułę. Co dalej?','Encuentra la regla. ¿Qué sigue?'),`<span>${q.join(', ')}, ?</span>`,a)});
+add(7,8,l=>{const n=r(4,l===7?24:99);return N(tr('🏛️ Roman numerals! What number is this?','🏛️ Liczby rzymskie! Jaka to liczba?','🏛️ ¡Números romanos! ¿Qué número es?'),`<span>${roman(n)}</span>`,n)});
+add(8,10,()=>{const n=r(11,99);return T(tr('🏛️ Write it in Roman numerals','🏛️ Zapisz liczbą rzymską','🏛️ Escríbelo en números romanos'),`<span>${n}</span>`,roman(n),[roman(n+1),roman(n-1),roman(n+10>99?n-10:n+10),roman(n+5>99?n-5:n+5)],'txt')});
+add(7,8,()=>{const[e,k]=pick([['🐙',8],['🕷️',8],['🐞',6],['🦆',2],['🐶',4],['🐜',6]]),n=r(2,6);return N(tr(`Each ${e} has ${k} legs. How many legs in total?`,`Każdy ${e} ma nóg: ${k}. Ile nóg razem?`,`Cada ${e} tiene ${k} patas. ¿Cuántas patas en total?`),`<span class="grp">${e.repeat(n)}</span>`,n*k,{trap:n+k})});
+add(7,8,()=>{const k=r(2,5),w=r(2,9);return N(tr('⚖️ The scale is balanced. How heavy is one 🧱?','⚖️ Waga jest w równowadze. Ile waży jedna 🧱?','⚖️ La balanza está equilibrada. ¿Cuánto pesa un 🧱?'),`<span>${'🧱'.repeat(k)} ⚖️ ${k*w} kg</span>`,w)});
+add(8,9,()=>{const w=r(3,11),h=r(2,7);return Math.random()<.5?N(tr('What is the area? (m²)','Jakie jest pole? (m²)','¿Cuál es el área? (m²)'),rectPic(w,h),w*h,{trap:2*(w+h)}):N(tr('What is the perimeter? (m)','Jaki jest obwód? (m)','¿Cuál es el perímetro? (m)'),rectPic(w,h),2*(w+h),{trap:w*h})});
+add(8,9,()=>{const s=r(3,12),a=Math.random()<.5;return a?N(tr('Area of the square? (cm²)','Pole kwadratu? (cm²)','¿Área del cuadrado? (cm²)'),rectPic(s,s,'cm'),s*s,{trap:4*s}):N(tr('Perimeter of the square? (cm)','Obwód kwadratu? (cm)','¿Perímetro del cuadrado? (cm)'),rectPic(s,s,'cm'),4*s,{trap:s*s})});
+add(8,9,l=>{const big=l===9&&Math.random()<.5,n=big?r(120,9880):r(12,988),u=big?100:10,a=Math.round(n/u)*u;
+  return T(big?tr('Round to the nearest 100','Zaokrąglij do setek','Redondea a la centena'):tr('Round to the nearest 10','Zaokrąglij do dziesiątek','Redondea a la decena'),`<span>${n}</span>`,a,[a+u,a-u,n,Math.floor(n/u)*u===a?a+2*u:Math.floor(n/u)*u])});
+add(8,9,()=>{const a=r(12,49),b=r(3,9);return calc(`${a} × ${b}`,a*b)});
+add(6,8,l=>{const P=pick(l===6?[10,20]:[20,50,100]),c=r(Math.ceil(P/3),P-1),e=pick(['🍦','🧃','📘','🧸','🎨']);
+  return N(tr(`You pay ${P} 🪙. The ${e} costs ${c} 🪙. How much change?`,`Płacisz ${P} 🪙. ${e} kosztuje ${c} 🪙. Ile reszty?`,`Pagas ${P} 🪙 y ${e} cuesta ${c} 🪙. ¿Cuánto te devuelven?`),`<span>🛒 ${e}</span>`,P-c)});
+add(6,8,()=>{const e=pick(['🍦','🍎','🎈','✏️','🧁']),p=r(2,9),k=r(2,6);return N(tr(`1 ${e} = ${p} 🪙. You buy ${k}. How much do you pay?`,`1 ${e} = ${p} 🪙. Kupujesz ${k}. Ile płacisz?`,`1 ${e} = ${p} 🪙. Compras ${k}. ¿Cuánto pagas?`),`<span class="grp">${e.repeat(k)}</span>`,p*k,{trap:p+k})});
+add(8,10,()=>{const h=r(8,19),m=5*r(0,11),d=pick([15,20,25,30,40,45,50,70,75,90,105,120]),t=h*60+m+d,ans=tm(Math.floor(t/60),t%60);
+  const w=[t+10,t-10,t+60,t-5].map(x=>tm(Math.floor(x/60),x%60));return T(tr(`🎬 The film starts at ${tm(h,m)} and lasts ${d} min. When does it end?`,`🎬 Film zaczyna się o ${tm(h,m)} i trwa ${d} min. O której się kończy?`,`🎬 La película empieza a las ${tm(h,m)} y dura ${d} min. ¿A qué hora termina?`),'<span>🍿⏰</span>',ans,w)});
+add(6,8,l=>{const len=l===6?3:4,ds=picks([1,2,3,4,5,6,7,8,9],len),k=r(0,len-1),n=+ds.join(''),val=ds[k]*10**(len-1-k);
+  return N(tr(`What is the ${ds[k]} worth in ${n}?`,`Ile jest warta cyfra ${ds[k]} w liczbie ${n}?`,`¿Cuánto vale el ${ds[k]} en ${n}?`),`<span>${n}</span>`,val,{trap:ds[k]})});
+add(6,8,l=>{const ds=picks([1,2,3,4,5,6,7,8,9],l===6?3:4),big=Math.random()<.5,s=[...ds].sort((a,b)=>big?b-a:a-b);
+  return N(big?tr('Make the BIGGEST number from these digits','Ułóż NAJWIĘKSZĄ liczbę z tych cyfr','Forma el número MÁS GRANDE con estas cifras'):tr('Make the SMALLEST number from these digits','Ułóż NAJMNIEJSZĄ liczbę z tych cyfr','Forma el número MÁS PEQUEÑO con estas cifras'),`<span>${ds.join('  ')}</span>`,+s.join(''),{trap:+[...s].reverse().join('')})});
+add(6,7,()=>{const n=r(100,999);return N(tr(`Add up the digits of ${n}`,`Dodaj cyfry liczby ${n}`,`Suma las cifras de ${n}`),`<span>${String(n).split('').join(' + ')} = ?</span>`,String(n).split('').reduce((a,b)=>a+ +b,0))});
+add(7,8,()=>{const n=r(12,99)*10;return N(tr(`How many tens are in ${n}?`,`Ile dziesiątek jest w liczbie ${n}?`,`¿Cuántas decenas hay en ${n}?`),`<span>${n}</span>`,n/10,{trap:n%100/10})});
+add(7,9,l=>{const x=r(2,l===7?10:15),k=r(2,l===7?3:5),m=r(1,9),minus=l>7&&Math.random()<.5,res=minus?k*x-m:k*x+m;
+  return N(tr(`🤔 I think of a number, multiply it by ${k} and ${minus?'subtract':'add'} ${m}. I get ${res}. What was my number?`,`🤔 Myślę o liczbie. Mnożę ją przez ${k} i ${minus?'odejmuję':'dodaję'} ${m}. Wychodzi ${res}. Jaka to liczba?`,`🤔 Pienso un número, lo multiplico por ${k} y ${minus?'resto':'sumo'} ${m}. Me da ${res}. ¿Qué número era?`),'<span>🧠❓</span>',x)});
+add(6,8,()=>{const a=r(4,20),b=r(2,9);return N(tr(`👦 has ${a} ⭐. 👧 has ${b} ⭐ more. How many ⭐ together?`,`👦 ma ${a} ⭐, a 👧 ma o ${b} ⭐ więcej. Ile ⭐ mają razem?`,`👦 tiene ${a} ⭐ y 👧 tiene ${b} ⭐ más. ¿Cuántas ⭐ tienen juntos?`),'<span>👦⭐ 👧⭐</span>',2*a+b,{trap:a+b})});
+add(7,9,()=>{const u=r(2,5),d=r(1,u-1),k=r(3,6);return N(tr(`🐸 starts on step 0. It jumps up ${u}, then slides down ${d}. It does this ${k} times. Which step is it on?`,`🐸 stoi na stopniu 0. Skacze ${u} w górę i zsuwa się ${d} w dół. Robi tak ${k} razy. Na którym jest stopniu?`,`🐸 está en el escalón 0. Sube ${u} y baja ${d}. Lo hace ${k} veces. ¿En qué escalón está?`),'<span>🪜🐸</span>',k*(u-d),{trap:k*u})});
+add(6,9,l=>{const nb=l<=7?3:4,base=[...Array(nb)].map(()=>r(1,l<=7?9:15)),R=[base];while(R[0].length>1)R.unshift(R[0].slice(1).map((v,i)=>v+R[0][i]));
+  const html='<div class="pyr">'+R.map((row,i)=>'<div class="prow">'+row.map(v=>i===0?'<span class="brick q">?</span>':i===R.length-1?`<span class="brick">${v}</span>`:'<span class="brick e">0</span>').join('')+'</div>').join('')+'</div>';
+  return N(tr('Each brick is the sum of the two bricks below it. What is on top?','Każda cegła to suma dwóch cegieł pod nią. Co jest na szczycie?','Cada ladrillo es la suma de los dos de abajo. ¿Qué hay arriba?'),html,R[0][0])});
+add(7,9,()=>{const ops=['+','−','×',DIV()];let a,b,c,op,g=0;do{a=r(2,12);b=r(2,12);op=r(0,3);if(op===3){a=a*b}c=[a+b,a-b,a*b,a/b][op];
+  const res=[a+b,a-b,a*b,a/b];if(res.filter(x=>x===c).length===1&&c>=0)break}while(g++<50);
+  return T(tr('Which sign is missing?','Jakiego znaku brakuje?','¿Qué signo falta?'),`<span>${a} ❓ ${b} = ${c}</span>`,ops[op],ops)});
+add(6,9,l=>{const a=r(2,l<8?10:15),b=r(2,10),ok=Math.random()<.5,c=ok?a*b:a*b+pick([-2,-1,1,2,a,-b]);const Tt=tr('True ✔','Prawda ✔','Verdadero ✔'),F=tr('False ✘','Fałsz ✘','Falso ✘');
+  return T(tr('True or false?','Prawda czy fałsz?','¿Verdadero o falso?'),`<span>${a} × ${b} = ${c}</span>`,ok?Tt:F,[Tt,F],'txt',2)});
+add(8,9,()=>{const a=r(1,6)*100+r(-12,12),b=r(1,3)*100+r(-12,12),s=Math.round((a+b)/100)*100;return T(tr('Which is closest?','Który wynik jest najbliżej?','¿Qué resultado está más cerca?'),`<span>${a} + ${b} ≈ ?</span>`,s,[s-100,s+100,s+200,s-200].filter(x=>x>0))});
+add(7,9,()=>{let ex,g=0;do{ex=[...Array(4)].map(()=>{const t=r(0,2),a=r(2,9),b=r(2,9);return t===0?[`${a} × ${b}`,a*b]:t===1?[`${a*3} + ${b}`,a*3+b]:[`${a*5} − ${b}`,a*5-b]});
+    const mx=Math.max(...ex.map(e=>e[1]));if(ex.filter(e=>e[1]===mx).length===1&&new Set(ex.map(e=>e[0])).size===4)break}while(g++<50);
+  const mx=ex.reduce((m,e)=>e[1]>m[1]?e:m);return T(tr('Which one is the biggest?','Co jest największe?','¿Cuál es el mayor?'),'<span>🏆</span>',mx[0],ex.map(e=>e[0]),'txt')});
+add(6,7,l=>{if(l===6){const w=r(2,4);return N(tr(`How many days are there in ${w} weeks?`,`Ile dni mają ${w} tygodnie?`,`¿Cuántos días hay en ${w} semanas?`),'<span>📅</span>',7*w,{trap:5*w})}
+  const h=r(2,4);return N(tr(`How many minutes are there in ${h} hours?`,`Ile minut mają ${h} godziny?`,`¿Cuántos minutos hay en ${h} horas?`),'<span>⏰</span>',60*h,{trap:100*h})});
+add(8,10,l=>{const U=[['km','m',1000],['kg','g',1000],['m','cm',100],['h','min',60],['l','ml',1000],['min','s',60]],[a,b,f]=pick(U);const x=l>8&&f!==60&&Math.random()<.5?r(1,9)+.5:r(2,9);
+  return N(tr('Convert the units','Zamień jednostki','Convierte las unidades'),`<span>${dec(x)} ${a} = ? ${b}</span>`,Math.round(x*f),{trap:Math.round(x*(f===60?100:f/10))})});
+add(10,11,()=>{const s=r(2,6);return N(tr(`A cube has an edge of ${s} cm. What is its volume in cm³?`,`Sześcian ma krawędź ${s} cm. Jaka jest jego objętość w cm³?`,`Un cubo tiene una arista de ${s} cm. ¿Cuál es su volumen en cm³?`),'<span>🧊</span>',s**3,{trap:6*s*s})});
+add(9,10,()=>{const d=2*r(3,25),rad=Math.random()<.5;return N(tr('Circle','Koło','Círculo'),`${circlePic(rad?'d = '+d:'r = '+d/2)}<span class="sm">${rad?'r':'d'} = ?</span>`,rad?d/2:d,{trap:rad?2*d:d/4|0})});
+add(10,11,()=>{let a=r(1,5),b=r(1,5);const R='🔴',B='🔵',tot=a+b;return T(tr(`You pick one ball without looking. What is the chance it is ${B}?`,`Losujesz jedną kulę bez patrzenia. Jaka jest szansa, że to ${B}?`,`Sacas una bola sin mirar. ¿Qué probabilidad hay de que sea ${B}?`),`<span class="grp">${shuffle([...Array(a).fill(R),...Array(b).fill(B)]).join('')}</span>`,frs(b,tot),[frs(b,a),frs(a,tot),fr(b,tot+1),fr(1,tot),frs(b+1,tot)])});
+add(9,10,()=>{const t=r(-5,10),d=r(3,14);return N(tr('🌡️ The temperature drops. What is it now? (°C)','🌡️ Temperatura spada. Ile teraz wynosi? (°C)','🌡️ La temperatura baja. ¿Cuánto marca ahora? (°C)'),`<span>${fmt(t)}° ⬇️ ${d}°</span>`,t-d,{neg:true})});
+add(9,10,()=>{const a=r(-15,15),b=nz(-15,15);return calc(`${fmt(a)} + ${par(b)}`,a+b,{neg:true})});
+add(10,10,()=>{const a=nz(-9,9),b=nz(-9,9);return calc(`${fmt(a)} × ${par(b)}`,a*b,{trap:-a*b,neg:true})});
+add(9,10,()=>{const d=pick([5,7,8,9,11]),a=r(1,d-3),b=r(1,d-1-a);return T(tr('Add the fractions','Dodaj ułamki','Suma las fracciones'),`<span>${fr(a,d)} + ${fr(b,d)} = ?</span>`,fr(a+b,d),[fr(a+b,2*d),fr(a+b+1,d),fr(a*b||1,d),fr(Math.max(1,a+b-1),d)])});
+add(8,9,()=>{const d=pick([2,3,4,5,10]),k=r(1,d-1),n=d*r(2,12);return N(tr('Fraction of a number','Ułamek liczby','Fracción de un número'),`<span>${fr(k,d)} ${tr('of','z','de')} ${n} = ?</span>`,k*n/d,{trap:n/d})});
+add(9,10,()=>{const b=pick([2,3,4,5]),a=r(1,b-1),k=r(2,5);return N(tr('Equal fractions: find ?','Równe ułamki: znajdź ?','Fracciones equivalentes: encuentra ?'),`<span>${fr(a,b)} = ${fr('?',b*k)}</span>`,a*k,{trap:a+k})});
+add(10,11,()=>{const b=pick([3,4,5,7]),a=r(1,b-1),k=r(2,6);return T(tr('Simplify the fraction','Skróć ułamek','Simplifica la fracción'),`<span>${fr(a*k,b*k)} = ?</span>`,fr(a,b),[fr(a+1,b),fr(a,b+1),fr(a*k,b),fr(b-a,b)])});
+add(9,10,()=>{const a=pick([0.1,0.2,0.25,0.5,0.75,1.5,2.4]),b=pick([0.1,0.25,0.3,0.5,1.25,0.6]),s=a+b;return T(tr('Add the decimals','Dodaj ułamki dziesiętne','Suma los decimales'),`<span>${dec(a)} + ${dec(b)} = ?</span>`,dec(s),[dec(s+.1),dec(s-.1),dec(s+1),dec(s+.5)])});
+add(9,10,()=>{const x=r(11,999)/pick([10,100]),m=pick([10,100]),div=Math.random()<.5,ans=div?x/m:x*m;return T(WORK(),`<span>${dec(x)} ${div?DIV():'×'} ${m} = ?</span>`,dec(ans),[dec(div?x*m:x/m),dec(ans*10),dec(ans/10)])});
+add(9,10,()=>{const c=pick([10,20,25,50,75]),b=r(1,12)*20;return calc(`${c}% ${tr('of','z','de')} ${b}`,b*c/100)});
+add(9,10,()=>{const a=r(2,20),b=r(2,9),c=r(2,9);return calc(`${a} + ${b} × ${c}`,a+b*c,{trap:(a+b)*c})});
+add(10,11,()=>{const a=r(2,12),b=r(2,12),c=r(2,6);return calc(`(${a} + ${b}) × ${c}`,(a+b)*c,{trap:a+b*c})});
+add(10,10,()=>{const a=r(2,15);return calc(`${a}<sup>2</sup>`,a*a,{trap:2*a})});
+add(10,11,()=>{const a=r(4,15);return calc(`√${a*a}`,a,{trap:a*a/2|0})});
+add(10,10,()=>{const x=r(-6,12),a=r(2,9),b=r(1,20);return N(tr('Solve: x = ?','Rozwiąż: x = ?','Resuelve: x = ?'),`<span>${a}x + ${b} = ${fmt(a*x+b)}</span>`,x,{neg:true})});
+add(10,11,()=>{const a=r(30,80),b=r(30,140-a);return N(tr('Angles in a triangle add up to 180°. What is “?”','Kąty w trójkącie sumują się do 180°. Ile to „?”','Los ángulos de un triángulo suman 180°. ¿Cuánto es «?»'),triPic(a,b),180-a-b,{trap:360-a-b})});
+add(10,11,()=>{let m,nums;do{m=r(4,20);const k=pick([3,4,5]);nums=[];let s=0;for(let i=0;i<k-1;i++){const d=r(-5,5);nums.push(m+d);s+=d}nums.push(m-s)}while(nums.some(x=>x<=0));
+  return N(tr('What is the average (mean)?','Jaka jest średnia?','¿Cuál es la media?'),`<span class="sm">${nums.join(', ')}</span>`,m)});
+add(10,11,()=>{const S2=[[[1,4,9,16,25],36],[[1,3,6,10,15],21],[[3,6,12,24,48],96],[[1,1,2,3,5,8],13],[[2,3,5,7,11],13],[[1,8,27,64],125]],[s,a]=pick(S2);return N(tr('Crack the sequence! What comes next?','Rozgryź ciąg! Co dalej?','¡Descifra la serie! ¿Qué sigue?'),`<span class="sm">${s.join(', ')}, ?</span>`,a)});
+add(10,10,()=>{const a=r(3,10);return calc(`2<sup>${a}</sup>`,2**a,{trap:2*a})});
+add(10,11,()=>{const n=r(3,6);return calc(`10<sup>${n}</sup>`,10**n,{trap:10*n})});
+add(9,11,()=>{const P=[11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97],C=[15,21,25,27,33,35,39,45,49,51,55,57,63,65,69,77,81,85,87,91,93,95];
+  return T(tr('Which one is a prime number?','Która liczba jest pierwsza?','¿Cuál es un número primo?'),'<span>🔍</span>',pick(P),picks(C,3))});
+add(10,11,()=>{const g=r(2,12),a=g*r(1,6),b=g*r(1,6);const G=gcd(a,b);return N(tr('Greatest common divisor','Największy wspólny dzielnik','Máximo común divisor'),`<span>${tr('GCD','NWD','MCD')}(${a}, ${b})</span>`,G,{min:1})});
+add(10,11,()=>{const a=r(2,12),b=r(2,12),L=a*b/gcd(a,b);return N(tr('Least common multiple','Najmniejsza wspólna wielokrotność','Mínimo común múltiplo'),`<span>${tr('LCM','NWW','mcm')}(${a}, ${b})</span>`,L,{trap:a*b===L?L+a:a*b})});
+add(8,9,()=>{const d=pick([3,4,5,9]),ok=d*r(12,60);let w=[];while(w.length<3){const x=r(40,540);if(x%d&&!w.includes(x))w.push(x)}
+  return T(tr(`Which number divides by ${d} with no remainder?`,`Która liczba dzieli się przez ${d} bez reszty?`,`¿Qué número se divide entre ${d} sin resto?`),'<span>➗</span>',ok,w)});
+add(9,11,()=>{const v=pick([30,40,50,60,70,80,90]),t=r(2,5);return Math.random()<.5?N(tr(`🚗 goes ${v} km/h for ${t} h. How far does it go (km)?`,`🚗 jedzie ${v} km/h przez ${t} h. Ile km przejedzie?`,`🚗 va a ${v} km/h durante ${t} h. ¿Cuántos km recorre?`),'<span>🛣️</span>',v*t,{trap:v+t}):
+  N(tr(`🚗 drives ${v*t} km at ${v} km/h. How many hours?`,`🚗 pokonuje ${v*t} km z prędkością ${v} km/h. Ile godzin jedzie?`,`🚗 recorre ${v*t} km a ${v} km/h. ¿Cuántas horas tarda?`),'<span>🛣️</span>',t,{min:1})});
+add(10,11,()=>{const h=r(1,11);return N(tr('What is the angle between the hands? (°)','Jaki kąt tworzą wskazówki? (°)','¿Qué ángulo forman las agujas? (°)'),clock(h,0),Math.min(30*h,360-30*h),{trap:h*10})});
+add(9,11,l=>{let g=[[2,7,6],[9,5,1],[4,3,8]];for(let i=r(0,3);i>0;i--)g=g[0].map((_,c)=>g.map(row=>row[c]).reverse());if(Math.random()<.5)g=g.map(x=>[...x].reverse());
+  const k=l===9?r(0,5):r(3,20);g=g.map(x=>x.map(v=>v+k));const hi=r(0,8),ans=g[Math.floor(hi/3)][hi%3];
+  return N(tr('Every row, column and diagonal has the same sum. Find ?','Każdy wiersz, kolumna i przekątna mają tę samą sumę. Znajdź ?','Cada fila, columna y diagonal suman lo mismo. Encuentra ?'),'<div class="grid3">'+g.flat().map((v,i)=>i===hi?'<span class="q">?</span>':`<span>${v}</span>`).join('')+'</div>',ans)});
+
+
+/* ===== more visual & mixed ===== */
+add(0,1,()=>{const e=pick(ALL),o=picks(ALL.filter(x=>x!==e),2);return T(tr(`Find the same one: ${e}`,`Znajdź taki sam: ${e}`,`Encuentra el mismo: ${e}`),`<span>${e}</span>`,e,o,'',3)});
+add(0,2,l=>{const e=pick(ANIM),n=r(1,l===0?3:5);return T(tr(`Where is ${n}?`,`Gdzie jest ${n}?`,`¿Dónde hay ${n}?`),`<span>${n}</span>`,e.repeat(n),[e.repeat(n+1),e.repeat(n>1?n-1:n+2)],'pic',3)});
+add(0,2,()=>{const C=[[tr('red','czerwony','rojo'),'🟥'],[tr('blue','niebieski','azul'),'🟦'],[tr('green','zielony','verde'),'🟩'],[tr('yellow','żółty','amarillo'),'🟨'],[tr('purple','fioletowy','morado'),'🟪']],c=picks(C,3);
+  return T(tr(`Tap the ${c[0][0]} one`,`Pokaż kolor: ${c[0][0]}`,`Toca el color ${c[0][0]}`),'',c[0][1],[c[1][1],c[2][1]],'',3)});
+add(0,2,()=>{const W=['🐟','🐙','🐳','🦈','🐬','🦀'],L2=['🐶','🐱','🐮','🐷','🦊','🐰'];return T(tr('Who lives in the water?','Kto mieszka w wodzie?','¿Quién vive en el agua?'),'<span>🌊</span>',pick(W),picks(L2,2),'',3)});
+add(0,2,()=>{const F=['🐦','🦋','🐝','🦅','🦉','🦆'],N2=['🐢','🐌','🐷','🐶','🐘','🦔'];return T(tr('Who can fly?','Kto umie latać?','¿Quién puede volar?'),'<span>☁️</span>',pick(F),picks(N2,2),'',3)});
+add(0,2,()=>{const Q=[[tr('Which one is hot?','Co jest gorące?','¿Qué está caliente?'),'🔥','🧊'],[tr('Which one is fast?','Co jest szybkie?','¿Qué es rápido?'),'🚀','🐌'],[tr('Which one is cold?','Co jest zimne?','¿Qué está frío?'),'⛄','☀️'],[tr('Which one is slow?','Co jest wolne?','¿Qué es lento?'),'🐢','🐆'],[tr('Which one is heavy?','Co jest ciężkie?','¿Qué es pesado?'),'🐘','🪶'],[tr('Which one is light?','Co jest lekkie?','¿Qué es ligero?'),'🎈','🪨'],[tr('Which one shines at night?','Co świeci w nocy?','¿Qué brilla de noche?'),'🌙','🌈']],[q,a,b]=pick(Q);
+  return T(q,'',a,[b],'',2)});
+add(0,2,()=>{const LC=[['🥚','🐣','🐥','🐔'],['🌰','🌱','🌿','🌳'],['🐛','🐛','🦋','🦋'],['🌑','🌓','🌕','🌗']],c=pick(LC),k=r(0,1),ans=c[k+1];
+  return T(tr('What comes next?','Co będzie potem?','¿Qué viene después?'),`<span>${c.slice(0,k+1).join(' → ')} → ❓</span>`,ans,c.filter(x=>x!==ans).concat(['🍎']),'',3)});
+add(0,2,()=>{const[a,b]=picks([3,4,5,6,7,8,9],2),C=['#E53935','#1E88E5'];const bar=(w,i)=>`<rect x="10" y="${14+i*40}" width="${w*22}" height="24" rx="12" style="fill:${C[i]};stroke:#172033;stroke-width:3"/>`;
+  const long=Math.random()<.5;return T(long?tr('Which one is longer?','Która jest dłuższa?','¿Cuál es más larga?'):tr('Which one is shorter?','Która jest krótsza?','¿Cuál es más corta?'),`<svg class="ill" viewBox="0 0 220 90" role="img" aria-label="bars">${bar(a,0)}${bar(b,1)}</svg>`,(long?a>b:a<b)?'🟥':'🟦',['🟥','🟦'],'',2)});
+add(1,3,()=>{const f=pick(FOOD),a=r(2,4),k=r(2,3);return N(tr(`${a} ${f} fit in one 🧺. How many ${f} fit in ${k} 🧺?`,`Do jednego 🧺 mieści się ${a} ${f}. Ile ${f} zmieści się w ${k} 🧺?`,`En una 🧺 caben ${a} ${f}. ¿Cuántos ${f} caben en ${k} 🧺?`),`<span>${'🧺'.repeat(k)}</span>`,a*k,{min:1})});
+add(6,9,()=>{const[e,f]=picks(FOOD,2),k=r(2,5),a=r(2,4);return N(tr(`⚖️ ${a} ${e} weigh the same as ${a*k} ${f}. One ${e} weighs as much as how many ${f}?`,`⚖️ ${e} × ${a} waży tyle, co ${f} × ${a*k}. Ile ${f} waży jeden ${e}?`,`⚖️ ${a} ${e} pesan lo mismo que ${a*k} ${f}. ¿Cuántos ${f} pesa un ${e}?`),`<span>${e.repeat(a)} ⚖️ ${f.repeat(Math.min(a*k,12))}</span>`,k,{min:1})});
+add(12,12,()=>{const s=r(2,12),x1=r(1,s-1),x2=s-x1;return N(tr('Larger root','Większy pierwiastek','Raíz mayor'),`<span class="sm">x<sup>2</sup> − ${s}x + ${x1*x2} = 0</span>`,Math.max(x1,x2),{trap:s})});
+add(12,12,()=>{const h=r(-5,8),k=r(-9,9),b=-2*h,c=h*h+k;return N(tr('x of the parabola’s vertex','x wierzchołka paraboli','x del vértice de la parábola'),`<span class="sm">y = x<sup>2</sup> ${b?sgn(b)+'x':''} ${sgn(c)}</span>`,h,{neg:true,trap:-h})});
+add(12,12,()=>{const n=r(3,10);return N(tr('Sum of the series','Suma ciągu','Suma de la serie'),`<span class="sm">1 + 2 + 4 + … + 2<sup>${n}</sup></span>`,2**(n+1)-1,{trap:2**n})});
+add(12,12,()=>{const[a,b]=pick([[3,4],[6,8],[5,12],[8,6],[9,12]]),x1=r(-5,5),y1=r(-5,5);return N(tr('Distance between the points','Odległość między punktami','Distancia entre los puntos'),`<span class="sm">(${fmt(x1)}, ${fmt(y1)}), (${fmt(x1+a)}, ${fmt(y1+b)})</span>`,Math.hypot(a,b),{trap:a+b})});
+add(12,12,()=>T(tr('Trig identity','Tożsamość trygonometryczna','Identidad trigonométrica'),'<span>sin<sup>2</sup>x + cos<sup>2</sup>x</span>','1',['0','2','sin 2x','tan x']));
+add(12,12,()=>{const k=pick([1,2,3,4,6]),per=k===1?'2π':k===2?'π':`2π/${k}`;return T(tr('Period of the function','Okres funkcji','Periodo de la función'),`<span>y = sin(${k===1?'':k}x)</span>`,per,['2π','π','2π/3','π/2','2π/6','4π','π/3'].map(x=>x==='2π/6'?'π/3':x==='π/2'&&k===4?'π/2':x))});
+add(12,12,()=>{const[b,x,a]=pick([[4,8,'3/2'],[8,4,'2/3'],[9,27,'3/2'],[4,2,'1/2'],[27,9,'2/3'],[16,8,'3/4'],[8,2,'1/3']]);return T(tr('Logarithms','Logarytmy','Logaritmos'),`<span>log<sub>${b}</sub> ${x}</span>`,a,['3/2','2/3','1/2','3/4','1/3','2'])});
+
+/* ===== ADULT – skilled high school (11) ===== */
+add(11,11,()=>{const x=r(-9,15),a=r(4,11),c=r(1,a-1),b=nz(-20,20),d=a*x+b-c*x;return N(tr('Solve: x = ?','Rozwiąż: x = ?','Resuelve: x = ?'),`<span>${a}x ${sgn(b)} = ${c}x ${sgn(d)}</span>`,x,{neg:true})});
+add(11,11,()=>{const b=r(4,20)*20,p=pick([10,15,20,25,30,40]),up=Math.random()<.5;return N(up?tr(`📈 Price ${b} goes up by ${p}%. New price?`,`📈 Cena ${b} rośnie o ${p}%. Nowa cena?`,`📈 El precio ${b} sube un ${p}%. ¿Nuevo precio?`):tr(`📉 Price ${b} goes down by ${p}%. New price?`,`📉 Cena ${b} spada o ${p}%. Nowa cena?`,`📉 El precio ${b} baja un ${p}%. ¿Nuevo precio?`),`<span>${b} ${up?'+':'−'} ${p}%</span>`,up?b+b*p/100:b-b*p/100,{trap:up?b+p:b-p})});
+add(11,12,()=>{const t=r(0,2),b=pick([2,3,5,7]),m=r(2,6),n=r(2,6),L=tr('Exponent rules: find □','Potęgi: znajdź □','Potencias: encuentra □');
+  if(t===0)return N(L,`<span>${b}<sup>${m}</sup> · ${b}<sup>${n}</sup> = ${b}<sup>□</sup></span>`,m+n,{trap:m*n});if(t===1)return N(L,`<span>(${b}<sup>${m}</sup>)<sup>${n}</sup> = ${b}<sup>□</sup></span>`,m*n,{trap:m+n});
+  return N(L,`<span>${b}<sup>${m+n}</sup> ${DIV()} ${b}<sup>${n}</sup> = ${b}<sup>□</sup></span>`,m,{trap:m+2*n})});
+add(11,11,()=>{const[a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[6,8,10],[9,12,15],[20,21,29],[9,40,41]]);return N(tr('📐 Right triangle: how long is “?”','📐 Trójkąt prostokątny: jaka jest długość „?”','📐 Triángulo rectángulo: ¿cuánto mide «?»'),rtriPic(a,b),c,{trap:a+b})});
+add(11,12,()=>{const b=pick([2,3,10]),e=b===10?r(2,6):b===3?r(2,5):r(3,10);return N(tr('Logarithms','Logarytmy','Logaritmos'),`<span>log<sub>${b}</sub> ${grp3(b**e)}</span>`,e)});
+add(11,12,()=>{const x=r(2,15),y=r(1,x-1);return N(tr('Solve the system: x = ?','Rozwiąż układ: x = ?','Resuelve el sistema: x = ?'),`<div class="col sm"><span>x + y = ${x+y}</span><span>x − y = ${x-y}</span></div>`,x,{trap:y})});
+add(11,11,()=>{const P=r(2,20)*100,rt=pick([2,3,4,5]),t=r(2,5);return N(tr(`🏦 ${P} at ${rt}% a year (simple interest). Interest after ${t} years?`,`🏦 ${P} na ${rt}% rocznie (procent prosty). Odsetki po ${t} latach?`,`🏦 ${P} al ${rt}% anual (interés simple). ¿Intereses tras ${t} años?`),'<span>💰</span>',P*rt*t/100,{trap:P*rt/100})});
+add(11,11,()=>{const a=r(1,5),b=r(a+1,9),k=r(5,30),T0=(a+b)*k;return N(tr(`Split ${T0} in the ratio ${a}:${b}. Bigger part?`,`Podziel ${T0} w stosunku ${a}:${b}. Większa część?`,`Reparte ${T0} en proporción ${a}:${b}. ¿Parte mayor?`),'<span>⚖️</span>',b*k,{trap:a*k})});
+add(11,11,()=>{const p=pick([10,20,25,50]),o=r(3,20)*20,X=o*(100-p)/100;return N(tr(`🏷️ After a ${p}% discount it costs ${X}. Original price?`,`🏷️ Po obniżce o ${p}% kosztuje ${X}. Cena przed obniżką?`,`🏷️ Con un ${p}% de descuento cuesta ${X}. ¿Precio original?`),'<span>🛍️</span>',o,{trap:X+X*p/100})});
+add(11,11,()=>{const[a,b,h]=pick([[60,40,48],[30,60,40],[20,30,24],[10,15,12],[45,90,60],[6,12,8],[40,120,60]]);return N(tr(`🚗 There at ${a} km/h, back at ${b} km/h. Average speed?`,`🚗 Tam ${a} km/h, z powrotem ${b} km/h. Średnia prędkość?`,`🚗 Ida a ${a} km/h, vuelta a ${b} km/h. ¿Velocidad media?`),'<span>🔁</span>',h,{trap:(a+b)/2})});
+add(11,11,()=>{const x1=r(-5,5),m=nz(-4,4),dx=r(1,4),y1=r(-6,6);return N(tr('Slope of the line through the points','Współczynnik kierunkowy prostej przez punkty','Pendiente de la recta que pasa por los puntos'),`<span class="sm">(${fmt(x1)}, ${fmt(y1)}), (${fmt(x1+dx)}, ${fmt(y1+m*dx)})</span>`,m,{neg:true,trap:dx})});
+add(11,12,()=>{const a=r(-5,10),d=nz(-4,6),n=r(8,20);return N(tr('Arithmetic sequence','Ciąg arytmetyczny','Progresión aritmética'),`<span class="sm">a<sub>1</sub> = ${fmt(a)}, d = ${fmt(d)}, a<sub>${n}</sub> = ?</span>`,a+(n-1)*d,{neg:true,trap:a+n*d})});
+add(11,11,()=>{const b=pick([2,3,4,5]),a=b*r(2,4),m=r(4,7),n=r(1,m-2);return N(tr('Scientific notation','Notacja wykładnicza','Notación científica'),`<span class="sm">(${a} × 10<sup>${m}</sup>) ${DIV()} (${b} × 10<sup>${n}</sup>)</span>`,a/b*10**(m-n),{trap:a/b*10**(m-n-1)})});
+add(11,11,()=>{const s=r(2,12),w=6-Math.abs(7-s);return T(tr('Two dice are rolled. Probability of this sum?','Rzucamy dwiema kostkami. Prawdopodobieństwo tej sumy?','Se lanzan dos dados. ¿Probabilidad de esta suma?'),`<span>🎲🎲 = ${s}</span>`,frs(w,36),[frs(w+1,36),frs(Math.max(1,w-1),36),frs(w,12),frs(1,s)])});
+add(11,11,()=>{const rr=r(2,9);return T(tr('Area of the circle','Pole koła','Área del círculo'),circlePic('r = '+rr),`${rr*rr}π`,[`${2*rr}π`,`${rr}π`,`${2*rr*rr}π`,`${rr*rr+1}π`])});
+add(11,11,()=>{const a=r(-6,6),b=r(2,9);return N(tr('Larger solution','Większe rozwiązanie','Solución mayor'),`<span>|x ${sgn(-a)}| = ${b}</span>`,a+b,{neg:true,trap:a-b})});
+add(11,12,()=>{const a=r(1,4),b=r(-5,5),c=r(-9,9),k=r(-3,4);return N(tr('Function value','Wartość funkcji','Valor de la función'),`<span class="sm">f(x) = ${a===1?'':a}x<sup>2</sup> ${sgn(b)}x ${sgn(c)}, f(${fmt(k)}) = ?</span>`,a*k*k+b*k+c,{neg:true})});
+add(11,11,()=>{const n=r(5,10);return N(tr('Sum of interior angles (°)','Suma kątów wewnętrznych (°)','Suma de ángulos interiores (°)'),polyPic(n),(n-2)*180,{trap:n*180})});
+add(11,11,()=>{const x=r(3,20),k=r(0,30);return N(tr('Solve for x > 0','Rozwiąż dla x > 0','Resuelve para x > 0'),`<span>x<sup>2</sup>${k?` − ${k}`:''} = ${x*x-k}</span>`,x,{trap:(x*x-k)/2|0})});
+add(11,11,()=>{const a=r(1,9),b=r(1,9);return N(tr('Expand: find □','Wymnóż: znajdź □','Desarrolla: encuentra □'),`<span class="sm">(x + ${a})(x + ${b}) = x<sup>2</sup> + □x + ${a*b}</span>`,a+b,{trap:a*b})});
+add(11,12,()=>{const y=pick([1900,2000,2023,2024,2100,2400,1996,2026,1800]);const leap=(y%4===0&&y%100!==0)||y%400===0;
+  let ys=[];while(ys.length<3){const z=r(1890,2410);const lz=(z%4===0&&z%100!==0)||z%400===0;if(!lz&&!ys.includes(z))ys.push(z)}const L=[1996,2000,2024,2400,2016,2028];
+  return T(tr('Which year is a leap year?','Który rok jest przestępny?','¿Qué año es bisiesto?'),'<span>📅</span>',pick(L),[...ys,1900,2100])});
+
+/* ===== ADULT PRO – advanced high school (12) ===== */
+add(12,12,()=>{const a=r(1,5),n=r(2,4),k=r(1,3);return N(tr('Derivative','Pochodna','Derivada'),`<span class="sm">f(x) = ${a===1?'':a}x<sup>${n}</sup>, f′(${k}) = ?</span>`,a*n*k**(n-1),{trap:a*k**n})});
+add(12,12,()=>{const n=r(10,40);return N(tr('Sum of the series','Suma ciągu','Suma de la serie'),`<span>1 + 2 + 3 + … + ${n}</span>`,n*(n+1)/2,{trap:n*n})});
+add(12,12,()=>{const n=r(5,12),k=pick([2,3]);return N(tr('Combinations','Kombinacje','Combinaciones'),`<span class="binom"><span>${n}</span><span>${k}</span></span>`,C2(n,k),{trap:C2(n,k)*(k===2?2:6)})});
+add(12,12,()=>{const n=r(4,7);let f=1;for(let i=2;i<=n;i++)f*=i;return N(tr('Factorial','Silnia','Factorial'),`<span>${n}!</span>`,f,{trap:f/n})});
+add(12,12,()=>{const set=[['sin 30°','1/2'],['cos 60°','1/2'],['tan 45°','1'],['sin 90°','1'],['cos 0°','1'],['sin 60°','√3/2'],['cos 30°','√3/2'],['sin 45°','√2/2'],['tan 60°','√3'],['cos 90°','0'],['tan 30°','√3/3']],[q,a]=pick(set);
+  return T(tr('Trigonometry','Trygonometria','Trigonometría'),`<span>${q}</span>`,a,picks(['0','1/2','1','√2/2','√3/2','√3','√3/3'],6))});
+add(12,12,()=>{const a=r(1,9),b=r(1,9),sum=Math.random()<.5;return N(sum?tr('Sum of both roots','Suma pierwiastków','Suma de las raíces'):tr('Product of both roots','Iloczyn pierwiastków','Producto de las raíces'),`<span class="sm">x<sup>2</sup> − ${a+b}x + ${a*b} = 0</span>`,sum?a+b:a*b,{trap:sum?a*b:a+b})});
+add(12,12,()=>{const b=pick([2,3,5]),e=b===2?r(4,9):b===3?r(2,5):r(2,4),f=r(1,3);return N(tr('Logarithms','Logarytmy','Logaritmos'),`<span>log<sub>${b}</sub> ${b**e} + log<sub>${b}</sub> ${b**f}</span>`,e+f,{trap:e*f})});
+add(12,12,()=>{const a=r(40,300),m=pick([5,7,9,11,12]);return N(tr('Remainder','Reszta z dzielenia','Resto'),`<span>${a} mod ${m}</span>`,a%m)});
+add(12,12,()=>{const a=r(1,5),q=pick([2,3]),n=r(4,6);return N(tr('Geometric sequence','Ciąg geometryczny','Progresión geométrica'),`<span class="sm">a<sub>1</sub> = ${a}, ${LANG==='en'?'r':'q'} = ${q}, a<sub>${n}</sub> = ?</span>`,a*q**(n-1),{trap:a*q**n})});
+add(12,12,()=>{const a=r(1,9),d=r(2,6),n=r(6,15);return N(tr(`Sum of the first ${n} terms`,`Suma ${n} pierwszych wyrazów`,`Suma de los ${n} primeros términos`),`<span class="sm">${a}, ${a+d}, ${a+2*d}, …</span>`,n*(2*a+(n-1)*d)/2)});
+add(12,12,()=>{const n=r(4,10);return N(tr(`In how many ways can 🥇 and 🥈 go to ${n} runners?`,`Na ile sposobów można przyznać 🥇 i 🥈 wśród ${n} biegaczy?`,`¿De cuántas formas se pueden dar 🥇 y 🥈 entre ${n} corredores?`),'<span>🏃🏃🏃</span>',n*(n-1),{trap:C2(n,2)})});
+add(12,12,()=>{const b=r(1,5),k=r(2,6),a=b*k;return N(tr('Limit','Granica','Límite'),`<span class="sm">lim<sub>x→∞</sub> (${a}x<sup>2</sup> + ${r(1,9)}) / (${b}x<sup>2</sup> − ${r(1,9)})</span>`,k,{trap:a})});
+add(12,12,()=>{const[a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[9,12,15]]);return N(tr('Length of the vector','Długość wektora','Módulo del vector'),`<span>|(${pick([a,-a])}, ${pick([b,-b])})|</span>`.replace(/-/g,'−'),c,{trap:a+b})});
+add(12,12,()=>{const[a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17],[12,16,20]]);return N(tr('Complex numbers','Liczby zespolone','Números complejos'),`<span>|${a} ${Math.random()<.5?'+':'−'} ${b}i|</span>`,c,{trap:a+b})});
+add(12,12,()=>{const[n,d,g]=pick([[1,6,30],[1,4,45],[1,3,60],[1,2,90],[2,3,120],[3,4,135],[5,6,150],[1,1,180],[3,2,270],[5,4,225]]);return N(tr('Radians → degrees','Radiany → stopnie','Radianes → grados'),`<span>${n===1?'':n}π/${d} rad = ?°</span>`.replace('π/1 ','π '),g,{trap:g/2})});
+add(12,12,()=>{const a=r(2,6),b=nz(-9,9),x=r(-5,8);return N(tr('Inverse function','Funkcja odwrotna','Función inversa'),`<span class="sm">f(x) = ${a}x ${sgn(b)}, f<sup>−1</sup>(${fmt(a*x+b)}) = ?</span>`,x,{neg:true,trap:a*(a*x+b)+b})});
+add(12,12,()=>{const b=pick([2,3]),m=b===2?r(4,9):r(2,5),k=r(1,3);return N(tr('Solve: x = ?','Rozwiąż: x = ?','Resuelve: x = ?'),`<span>${b}<sup>x + ${k}</sup> = ${b**m}</span>`,m-k,{neg:true,trap:m})});
+add(12,12,()=>{const a=r(1,4),k=r(1,3);return N(tr('Second derivative','Druga pochodna','Segunda derivada'),`<span class="sm">f(x) = ${a===1?'':a}x<sup>3</sup>, f″(${k}) = ?</span>`,6*a*k,{trap:3*a*k*k})});
+add(12,12,()=>{const n=r(2,4),d=2**n;return T(tr('Probability','Prawdopodobieństwo','Probabilidad'),`<span class="sm">🪙 × ${n}: P(${tr('at least one heads','co najmniej jeden orzeł','al menos una cara')})</span>`,fr(d-1,d),[fr(1,d),frs(1,2),fr(n,d),frs(d-2,d)])});
+add(12,12,()=>{const k=r(-4,5),c=r(-9,9);return N(tr('Slope of the tangent line','Nachylenie stycznej','Pendiente de la recta tangente'),`<span class="sm">y = x<sup>2</sup> ${sgn(c)}, x = ${fmt(k)}</span>`,2*k,{neg:true,trap:k*k})});
+add(12,13,()=>{const n=r(4,9);return N(tr('Coefficient of x²','Współczynnik przy x²','Coeficiente de x²'),`<span>(1 + x)<sup>${n}</sup></span>`,C2(n,2),{trap:n})});
+
+/* ===== ULTRA PRO – academic (13) ===== */
+add(13,13,()=>{const a=r(1,5);return N(tr('Definite integral','Całka oznaczona','Integral definida'),`<span>∫<sub>0</sub><sup>${a}</sup> 3x<sup>2</sup> dx</span>`,a**3,{trap:3*a*a})});
+add(13,13,()=>{const a=r(1,6),k=pick([2,4,6]);return N(tr('Definite integral','Całka oznaczona','Integral definida'),`<span>∫<sub>0</sub><sup>${a}</sup> ${k}x dx</span>`,k*a*a/2,{trap:k*a})});
+add(13,13,()=>{const k=r(2,9);return N(tr('Limit','Granica','Límite'),`<span class="sm">lim<sub>x→0</sub> sin(${k}x) / x</span>`,k,{trap:0})});
+add(13,13,()=>{const a=r(-5,9),b=r(-5,9),c=r(-5,9),d=r(-5,9);return N(tr('Determinant','Wyznacznik','Determinante'),`<span>det <span class="mat" style="grid-template-columns:auto auto"><span>${fmt(a)}</span><span>${fmt(b)}</span><span>${fmt(c)}</span><span>${fmt(d)}</span></span></span>`,a*d-b*c,{trap:a*d+b*c,neg:true})});
+add(13,13,()=>{const n=r(5,99);return T(tr('Complex numbers','Liczby zespolone','Números complejos'),`<span>i<sup>${n}</sup></span>`,['1','i','−1','−i'][n%4],['1','i','−1','−i'])});
+add(13,13,()=>{const n=r(9,63);return N(tr('Binary → decimal','Dwójkowy → dziesiętny','Binario → decimal'),`<span>${n.toString(2)}<sub>2</sub></span>`,n)});
+add(13,13,()=>{const n=r(20,255);return N(tr('Hexadecimal → decimal','Szesnastkowy → dziesiętny','Hexadecimal → decimal'),`<span>${n.toString(16).toUpperCase()}<sub>16</sub></span>`,n,{trap:+n.toString(16).replace(/[a-f]/g,'')||n+16})});
+add(13,13,()=>{const n=r(3,7);return N(tr('Sum of squares','Suma kwadratów','Suma de cuadrados'),`<span>Σ<sub>k=1</sub><sup>${n}</sup> k<sup>2</sup></span>`,n*(n+1)*(2*n+1)/6,{trap:(n*(n+1)/2)**2})});
+add(13,13,()=>{const[q,a]=pick([['1/2','2'],['1/3','3/2'],['1/4','4/3'],['2/3','3']]);return T(tr('Geometric series','Szereg geometryczny','Serie geométrica'),`<span>Σ<sub>n=0</sub><sup>∞</sup> (${q})<sup>n</sup></span>`,a,['2','3/2','4/3','3','1','∞'])});
+add(13,13,()=>{const u=[r(-4,5),r(-4,5),r(-4,5)],v=[r(-4,5),r(-4,5),r(-4,5)];return N(tr('Dot product','Iloczyn skalarny','Producto escalar'),`<span class="sm">(${u.map(fmt).join(', ')}) · (${v.map(fmt).join(', ')})</span>`,u[0]*v[0]+u[1]*v[1]+u[2]*v[2],{neg:true})});
+add(13,13,()=>T(tr('A famous limit','Słynna granica','Un límite famoso'),`<span class="sm">lim<sub>n→∞</sub> (1 + 1/n)<sup>n</sup></span>`,'e',['1','∞','0','π']));
+add(13,13,()=>{const a=r(2,9);return N(tr('Limit','Granica','Límite'),`<span class="sm">lim<sub>x→${a}</sub> (x<sup>2</sup> − ${a*a}) / (x − ${a})</span>`,2*a,{trap:a})});
+add(13,13,()=>{const d=[nz(-4,5),nz(-4,5),nz(-3,4)];const o=[r(-9,9),r(-9,9),r(-9,9)];const M=[[d[0],o[0],o[1]],[0,d[1],o[2]],[0,0,d[2]]];
+  return N(tr('Determinant','Wyznacznik','Determinante'),`<span>det <span class="mat" style="grid-template-columns:auto auto auto">${M.flat().map(v=>`<span>${fmt(v)}</span>`).join('')}</span></span>`,d[0]*d[1]*d[2],{neg:true,trap:d[0]+d[1]+d[2]})});
+add(13,13,()=>{const M=[[r(-5,9),r(-5,9),r(-5,9)],[r(-5,9),r(-5,9),r(-5,9)],[r(-5,9),r(-5,9),r(-5,9)]];return N(tr('Trace of the matrix','Ślad macierzy','Traza de la matriz'),`<span>tr <span class="mat" style="grid-template-columns:auto auto auto">${M.flat().map(v=>`<span>${fmt(v)}</span>`).join('')}</span></span>`,M[0][0]+M[1][1]+M[2][2],{neg:true})});
+add(13,13,()=>{const a=r(-4,9),b=r(-4,9),c=r(-9,9);return N(tr('Largest eigenvalue','Największa wartość własna','Mayor valor propio'),`<span><span class="mat" style="grid-template-columns:auto auto"><span>${fmt(a)}</span><span>${fmt(c)}</span><span>0</span><span>${fmt(b)}</span></span></span>`,Math.max(a,b),{neg:true,trap:a+b})});
+add(13,13,()=>{const u=[r(-5,5),r(-5,5)],v=[r(-5,5),r(-5,5)];return N(tr('Cross product: z component','Iloczyn wektorowy: składowa z','Producto vectorial: componente z'),`<span class="sm">(${fmt(u[0])}, ${fmt(u[1])}, 0) × (${fmt(v[0])}, ${fmt(v[1])}, 0)</span>`,u[0]*v[1]-u[1]*v[0],{neg:true,trap:u[0]*v[1]+u[1]*v[0]})});
+add(13,13,()=>{const k=nz(-6,9);return N(tr('Derivative at 0','Pochodna w zerze','Derivada en 0'),`<span class="sm">f(x) = e<sup>${k}x</sup>, f′(0) = ?</span>`,k,{neg:true,trap:1})});
+add(13,13,()=>{const k=r(2,9);return N(tr('Definite integral','Całka oznaczona','Integral definida'),`<span>∫<sub>1</sub><sup>e<sup>${k}</sup></sup> 1/x dx</span>`,k,{trap:k*k})});
+add(13,13,()=>{const[q,a]=pick([['∫<sub>0</sub><sup>π</sup> sin x dx','2'],['∫<sub>0</sub><sup>π/2</sup> cos x dx','1'],['∫<sub>0</sub><sup>2π</sup> sin x dx','0'],['∫<sub>0</sub><sup>1</sup> eˣ dx','e − 1']]);return T(tr('Definite integral','Całka oznaczona','Integral definida'),`<span>${q}</span>`,a,['0','1','2','e − 1','π','−1'])});
+add(13,13,()=>{const n=r(3,10);return N(tr('Number of subsets','Liczba podzbiorów','Número de subconjuntos'),`<span class="sm">|𝒫({1, 2, …, ${n}})|</span>`,2**n,{trap:n*n})});
+add(13,13,()=>{const k=r(5,20),m=pick([3,5,7,9,11,13]);let v=1;for(let i=0;i<k;i++)v=v*2%m;return N(tr('Remainder','Reszta z dzielenia','Resto'),`<span>2<sup>${k}</sup> mod ${m}</span>`,v)});
+add(13,13,()=>{const n=r(8,15),F=[0,1,1];for(let i=3;i<=n;i++)F[i]=F[i-1]+F[i-2];return N('Fibonacci',`<span class="sm">F<sub>1</sub> = F<sub>2</sub> = 1, F<sub>${n}</sub> = ?</span>`,F[n],{trap:F[n-1]+F[n]})});
+add(13,13,()=>{const n=r(4,12);return N(tr('Edges in a complete graph','Krawędzie grafu pełnego','Aristas del grafo completo'),`<span>K<sub>${n}</sub></span>`,n*(n-1)/2,{trap:n*(n-1)})});
+add(13,13,()=>{const n=pick([4,6,8,10,12,20]);return T(tr('Expected value of a fair die','Wartość oczekiwana uczciwej kostki','Valor esperado de un dado justo'),`<span>🎲 d${n}</span>`,dec((n+1)/2),[dec(n/2),dec(n/2+1),dec((n-1)/2),dec(n/4+1)])});
+add(13,13,()=>{const g=r(6,30),a=g*r(3,9),b=g*r(2,7);return N(tr('Greatest common divisor','Największy wspólny dzielnik','Máximo común divisor'),`<span>${tr('GCD','NWD','MCD')}(${a}, ${b})</span>`,gcd(a,b),{min:1})});
+add(13,13,()=>T(tr('Telescoping series','Szereg teleskopowy','Serie telescópica'),`<span>Σ<sub>k=1</sub><sup>∞</sup> ${fr(1,'k(k+1)')}</span>`,'1',['1/2','2','∞','e']));
+
+const LEVELS=()=>({
+ 0:tr('👀 Pictures only: count to 5, spot the different one, shapes, what is bigger','👀 Same obrazki: licz do 5, znajdź inny, kształty, co jest większe','👀 Solo dibujos: contar hasta 5, el diferente, figuras, qué es más grande'),
+ 1:tr('🍎 Count to 10, fingers, patterns, dice, add up to 5','🍎 Liczenie do 10, palce, wzory, kostki, dodawanie do 5','🍎 Contar hasta 10, dedos, series, dados, sumar hasta 5'),
+ 2:tr('🎈 Add and take away to 10 with pictures, what comes next, who is 3rd','🎈 Dodawanie i odejmowanie do 10 z obrazkami, co dalej, kto jest trzeci','🎈 Sumar y restar hasta 10 con dibujos, qué sigue, quién es el tercero'),
+ 3:tr('🎲 Dice and dominoes, ten-frames, the 🐊 game, growing patterns','🎲 Kostki i domino, ramki dziesiątkowe, gra z 🐊, rosnące wzory','🎲 Dados y dominó, marcos de diez, el juego del 🐊, series que crecen'),
+ 4:tr('🍬 Baskets, sharing, coins, days of the week, full hours','🍬 Koszyki, dzielenie się, monety, dni tygodnia, pełne godziny','🍬 Cestas, repartir, monedas, días de la semana, horas en punto'),
+ 5:tr('➕ Add and take away to 20, doubles, halves, even or odd, clocks','➕ Dodawanie i odejmowanie do 20, podwajanie, połowy, parzyste, zegar','➕ Sumar y restar hasta 20, dobles, mitades, par o impar, relojes'),
+ 6:tr('🍕 Sums to 100, 2-5-10 tables, fractions, shopping, number pyramids','🍕 Dodawanie do 100, mnożenie przez 2, 5, 10, ułamki, zakupy, piramidy','🍕 Sumas hasta 100, tablas del 2, 5 y 10, fracciones, compras, pirámides'),
+ 7:tr('🏛️ Times tables, dividing, Roman numerals, riddles, missing signs','🏛️ Tabliczka mnożenia, dzielenie, liczby rzymskie, zagadki, brakujące znaki','🏛️ Tablas de multiplicar, dividir, números romanos, acertijos, signos que faltan'),
+ 8:tr('📐 Big numbers, area and perimeter, rounding, units, time','📐 Duże liczby, pole i obwód, zaokrąglanie, jednostki, czas','📐 Números grandes, área y perímetro, redondear, unidades, tiempo'),
+ 9:tr('🌡️ Negatives, fractions, decimals, percent, magic squares, primes','🌡️ Liczby ujemne, ułamki, procenty, kwadraty magiczne, liczby pierwsze','🌡️ Negativos, fracciones, decimales, porcentajes, cuadrados mágicos, primos'),
+ 10:tr('🔺 Powers and roots, equations, angles, averages, probability','🔺 Potęgi i pierwiastki, równania, kąty, średnie, prawdopodobieństwo','🔺 Potencias y raíces, ecuaciones, ángulos, medias, probabilidad'),
+ 11:tr('🎓 Skilled high school: equations, percent, Pythagoras, logs, functions','🎓 Dobry licealista: równania, procenty, Pitagoras, logarytmy, funkcje','🎓 Bachillerato avanzado: ecuaciones, porcentajes, Pitágoras, logaritmos'),
+ 12:tr('🧠 Advanced high school: derivatives, trig, series, combinatorics','🧠 Zaawansowany licealista: pochodne, trygonometria, ciągi, kombinatoryka','🧠 Bachillerato experto: derivadas, trigonometría, series, combinatoria'),
+ 13:tr('🚀 Academic: integrals, limits, matrices, complex numbers, number bases','🚀 Poziom akademicki: całki, granice, macierze, liczby zespolone, systemy liczbowe','🚀 Universidad: integrales, límites, matrices, complejos, bases numéricas')});
+const lvlLabel=l=>l===ADULT?tr('Adult','Dorosły','Adulto'):l===PRO?tr('Adult Pro','Dorosły Pro','Adulto Pro'):l===ULTRA?'Ultra Pro':String(l);
+
+/* ---------- flash screen content ---------- */
+const JOKES=[
+ {en:['Why was the math book sad?','It had too many problems.'],pl:['Dlaczego książka do matematyki jest smutna?','Bo ma za dużo problemów.'],es:['¿Por qué está triste el libro de matemáticas?','Porque tiene demasiados problemas.']},
+ {en:['What did 0 say to 8?','Nice belt!'],pl:['Co powiedziało zero do ósemki?','Fajny pasek!'],es:['¿Qué le dijo el 0 al 8?','¡Bonito cinturón!']},
+ {en:['Why is a calculator a great friend?','You can always count on it.'],pl:['Dlaczego kalkulator to dobry przyjaciel?','Bo zawsze możesz na nim liczyć.'],es:['¿Por qué la calculadora es una gran amiga?','Porque siempre puedes contar con ella.']},
+ {en:['Why don’t fish play tennis?','They’re scared of the net.'],pl:['Dlaczego ryby nie grają w tenisa?','Bo boją się siatki.'],es:['¿Por qué los peces no juegan al tenis?','Porque le tienen miedo a la red.']},
+ {en:['What did one wall say to the other wall?','I’ll meet you at the corner!'],pl:['Co powiedziała jedna ściana do drugiej?','Spotkajmy się na rogu!'],es:['¿Qué le dijo una pared a otra pared?','¡Nos vemos en la esquina!']},
+ {en:['Why do giraffes have long necks?','Because their feet smell!'],pl:['Dlaczego żyrafa ma długą szyję?','Bo śmierdzą jej nogi!'],es:['¿Por qué las jirafas tienen el cuello tan largo?','¡Porque les huelen los pies!']},
+ {en:['What did the snail say riding on the turtle’s back?','Wheeeee!'],pl:['Co krzyczy ślimak jadący na żółwiu?','Juhuuuu!'],es:['¿Qué grita un caracol montado en una tortuga?','¡Yujuuuu!']},
+ {en:['What has hands but can’t clap?','A clock.'],pl:['Co ma wskazówki, ale nigdy nikogo nie prowadzi?','Zegar.'],es:['¿Qué tiene agujas pero no pincha?','El reloj.']},
+ {en:['What has four legs but can’t walk?','A table.'],pl:['Co ma cztery nogi, a nie chodzi?','Stół.'],es:['¿Qué tiene cuatro patas y no camina?','La mesa.']},
+ {en:['What gets wetter the more it dries?','A towel.'],pl:['Co robi się coraz bardziej mokre, im więcej suszy?','Ręcznik.'],es:['¿Qué se moja mientras más seca?','La toalla.']},
+ {en:['What goes up but never comes down?','Your age.'],pl:['Co ciągle rośnie i nigdy nie maleje?','Twój wiek.'],es:['¿Qué sube y nunca baja?','La edad.']},
+ {en:['The more of them you take, the more you leave behind. What are they?','Footsteps.'],pl:['Im więcej ich robisz, tym więcej zostawiasz za sobą. Co to?','Kroki.'],es:['Cuantos más das, más dejas atrás. ¿Qué son?','Los pasos.']},
+ {en:['How many months have 28 days?','All of them!'],pl:['Ile miesięcy ma 28 dni?','Wszystkie!'],es:['¿Cuántos meses tienen 28 días?','¡Todos!']},
+ {en:['A farmer has 17 sheep. All but 9 run away. How many are left?','9!'],pl:['Rolnik ma 17 owiec. Wszystkie oprócz 9 uciekły. Ile zostało?','9!'],es:['Un granjero tiene 17 ovejas. Se escapan todas menos 9. ¿Cuántas quedan?','¡9!']},
+ {en:['Which is heavier: a kilo of feathers or a kilo of bricks?','Neither. They both weigh one kilo!'],pl:['Co jest cięższe: kilogram pierza czy kilogram cegieł?','Nic. Oba ważą kilogram!'],es:['¿Qué pesa más: un kilo de plumas o un kilo de ladrillos?','¡Lo mismo! Los dos pesan un kilo.']},
+ {en:['There are 3 apples and you take 2. How many do you have?','2, the ones you took!'],pl:['Są 3 jabłka, a ty bierzesz 2. Ile masz jabłek?','2, te, które wziąłeś!'],es:['Hay 3 manzanas y coges 2. ¿Cuántas tienes?','¡2, las que cogiste!']},
+ {en:['Multiply all the digits on a phone keypad. What do you get?','Zero! (There’s a 0 on it.)'],pl:['Pomnóż wszystkie cyfry z klawiatury telefonu. Ile wyjdzie?','Zero! (Jest tam 0.)'],es:['Multiplica todas las cifras del teclado de un teléfono. ¿Qué sale?','¡Cero! (Hay un 0.)']},
+ {en:['What has a neck but no head?','A bottle.'],pl:['Co ma szyjkę, a nie ma głowy?','Butelka.'],es:['¿Qué tiene cuello y no tiene cabeza?','La botella.']},
+ {en:['What has an eye but can’t see?','A needle.'],pl:['Co ma ucho, ale nic nie słyszy?','Igła.'],es:['¿Qué tiene ojo y no ve?','La aguja.']},
+ {en:['What has teeth but can’t bite?','A comb.'],pl:['Co ma zęby, ale nie gryzie?','Grzebień.'],es:['¿Qué tiene dientes y no muerde?','El peine.']},
+ {en:['Why is a circle so clever?','It has 360 degrees!'],es:['¿Por qué el círculo es tan listo?','¡Porque tiene 360 grados!']},
+ {en:['Why was 6 afraid of 7?','Because 7 8 9!']},
+ {en:['What kind of tree does a math teacher climb?','Geometry!']},
+ {en:['Why did the king go to the dentist?','To get his teeth crowned!']},
+ {en:['Why are obtuse angles always grumpy?','Because they’re never right.']},
+ {pl:['Jak nazywa się kot, który kocha matematykę?','Kotangens!']},
+ {pl:['Co robi traktor u fryzjera?','Warkocze!']},
+ {pl:['Jak nazywa się kot, który umie wszystko policzyć?','Kotkulator!']},
+ {es:['¿Qué le dijo el 1 al 10?','Para ser como yo, tienes que ser sincero.']},
+ {es:['¿Qué hace una abeja en el gimnasio?','¡Zum-ba!']},
+ {es:['¿Qué le dice una iguana a su hermana gemela?','¡Somos iguanitas!']},
+ {es:['¿Cuál es el colmo de un matemático?','Tener muchos problemas.']},
+ {es:['¿Qué le dijo un pez a otro pez?','Nada.']}
+];
+const FACTS=[
+ {en:'An octopus has three hearts. 🐙',pl:'Ośmiornica ma trzy serca. 🐙',es:'El pulpo tiene tres corazones. 🐙'},
+ {en:'Bees build honeycombs from hexagons. That shape holds the most honey using the least wax. 🐝',pl:'Pszczoły budują plastry z sześciokątów. Ten kształt mieści najwięcej miodu przy najmniejszej ilości wosku. 🐝',es:'Las abejas construyen panales de hexágonos. Esa forma guarda más miel con menos cera. 🐝'},
+ {en:'Shuffle a deck of 52 cards well, and that order has almost certainly never existed before. 🃏',pl:'Dobrze przetasuj talię 52 kart, a ta kolejność prawie na pewno nigdy wcześniej nie istniała. 🃏',es:'Si barajas bien 52 cartas, ese orden casi seguro nunca ha existido antes. 🃏'},
+ {en:'111 111 111 × 111 111 111 = 12 345 678 987 654 321 ✨',pl:'111 111 111 × 111 111 111 = 12 345 678 987 654 321 ✨',es:'111 111 111 × 111 111 111 = 12 345 678 987 654 321 ✨'},
+ {en:'The Romans had no symbol for zero. 🏛️',pl:'Rzymianie nie mieli znaku na zero. 🏛️',es:'Los romanos no tenían ningún símbolo para el cero. 🏛️'},
+ {en:'Sharks have been around longer than trees. 🦈🌳',pl:'Rekiny istnieją dłużej niż drzewa. 🦈🌳',es:'Los tiburones existen desde antes que los árboles. 🦈🌳'},
+ {en:'Legend says young Gauss added up all numbers from 1 to 100 in seconds: 5050!',pl:'Legenda mówi, że mały Gauss w kilka sekund dodał liczby od 1 do 100: 5050!',es:'Cuenta la leyenda que el pequeño Gauss sumó los números del 1 al 100 en segundos: ¡5050!'},
+ {en:'There are more possible chess games than atoms in the observable universe. ♟️',pl:'Możliwych partii szachów jest więcej niż atomów w obserwowalnym Wszechświecie. ♟️',es:'Hay más partidas de ajedrez posibles que átomos en el universo observable. ♟️'},
+ {en:'The equals sign “=” was invented by Robert Recorde in 1557.',pl:'Znak równości „=” wymyślił Robert Recorde w 1557 roku.',es:'El signo igual «=» lo inventó Robert Recorde en 1557.'},
+ {en:'The digits of π go on forever and never repeat in a pattern.',pl:'Cyfry liczby π ciągną się w nieskończoność i nigdy nie powtarzają się we wzór.',es:'Las cifras de π son infinitas y nunca se repiten en un patrón.'},
+ {en:'In a group of just 23 people, there’s a better than 50% chance two share a birthday. 🎂',pl:'W grupie tylko 23 osób szansa, że dwie mają urodziny tego samego dnia, jest większa niż 50%. 🎂',es:'En un grupo de solo 23 personas hay más de un 50% de probabilidad de que dos cumplan años el mismo día. 🎂'},
+ {en:'A day on Venus is longer than a year on Venus. 🪐',pl:'Doba na Wenus trwa dłużej niż rok na Wenus. 🪐',es:'Un día en Venus dura más que un año en Venus. 🪐'},
+ {en:'Kids have 20 milk teeth. Adults can have 32 teeth. 🦷',pl:'Dzieci mają 20 zębów mlecznych. Dorośli mogą mieć 32 zęby. 🦷',es:'Los niños tienen 20 dientes de leche. Los adultos pueden tener 32. 🦷'},
+ {en:'Bananas are berries, but strawberries are not! 🍌🍓',pl:'Banany to jagody, a truskawki nie! 🍌🍓',es:'¡Los plátanos son bayas, pero las fresas no! 🍌🍓'},
+ {en:'Sunlight takes about 8 minutes to reach Earth. ☀️',pl:'Światło Słońca leci do Ziemi około 8 minut. ☀️',es:'La luz del Sol tarda unos 8 minutos en llegar a la Tierra. ☀️'},
+ {en:'The Moon moves about 3.8 cm away from Earth every year. 🌙',pl:'Księżyc oddala się od Ziemi o około 3,8 cm rocznie. 🌙',es:'La Luna se aleja de la Tierra unos 3,8 cm cada año. 🌙'},
+ {en:'A googol is 1 followed by 100 zeros. A 9-year-old boy came up with the name!',pl:'Googol to jedynka i 100 zer. Nazwę wymyślił 9-letni chłopiec!',es:'Un gúgol es un 1 seguido de 100 ceros. ¡El nombre lo inventó un niño de 9 años!'},
+ {en:'Zero was treated as a real number in India over 1,300 years ago.',pl:'Zero jako prawdziwą liczbę traktowano w Indiach już ponad 1300 lat temu.',es:'En la India ya trataban el cero como un número hace más de 1300 años.'},
+ {q:1,en:['“Do not worry about your difficulties in mathematics. I can assure you mine are still greater.”','Albert Einstein'],pl:['„Nie martw się swoimi trudnościami z matematyką. Zapewniam, że moje są jeszcze większe.”','Albert Einstein'],es:['«No te preocupes por tus dificultades con las matemáticas. Te aseguro que las mías son aún mayores.»','Albert Einstein']},
+ {q:1,en:['“Nothing in life is to be feared, it is only to be understood.”','Maria Skłodowska-Curie'],pl:['„Niczego w życiu nie należy się bać, należy to tylko zrozumieć.”','Maria Skłodowska-Curie'],es:['«Nada en la vida debe ser temido, solo comprendido.»','Maria Skłodowska-Curie']},
+ {q:1,en:['“The beauty of mathematics only shows itself to more patient followers.”','Maryam Mirzakhani'],pl:['„Piękno matematyki ukazuje się tylko cierpliwym.”','Maryam Mirzakhani'],es:['«La belleza de las matemáticas solo se muestra a los seguidores más pacientes.»','Maryam Mirzakhani']}
+];
+
+/* ---------- UI text ---------- */
+const UI={
+ en:{title:'Math Tower',sub:'Pick the right answer to place a block. Lucky questions give 2 blocks. Reach 12 to win!',pl:n=>n===1?'1 player':`${n} players`,name:i=>`Player ${i} name`,def:i=>`Player ${i}`,diff:'Difficulty',start:'Start game',back:'← Menu',
+  turn:n=>`${n}’s turn`,solo:n=>`${n}: build your tower!`,lucky:'✨ Lucky question: worth 2 blocks!',good:['Correct! Block placed 🧱','Nice! Up you go ⬆️','Yes! Keep building 🔨','Great mining! ⛏️','Boom! Nailed it 💥','Brilliant! 🌟'],luckyGood:'Lucky! +2 blocks ✨',
+  streak:k=>` 🔥 ${k} in a row!`,wrong:a=>`Not this time. The answer is ${a}.`,last:(t,n)=>`🏁 ${t} reached the top! Last try for ${n} to tie.`,and:' and ',win:n=>`${n} wins!`,tie:'It’s a tie!',tieText:t=>`${t} reached the top together.`,
+  winText:(k,o)=>`That’s win number ${k} 🏆 ${o}`,built:(n,k)=>`${n} built ${k}.`,soloTitle:'Tower complete! 🎉',soloText:(q,b)=>`You needed ${q} questions. Your best at this level: ${b}.`,again:'Play again',menu:'Main menu',winsSoFar:k=>`🏆 Wins so far: ${k}`,
+  sound:'🔊 Sound',fx:'✨ Effects',did:'Did you know?',quote:'Wise words',joke:'Joke time!',show:'Show the answer',cont:'Continue',lvl:'level',pops:['Super!','Wow!','Yes!','Great!','Awesome!']},
+ pl:{title:'Wieża Liczb',sub:'Wybierz dobrą odpowiedź, a dostaniesz klocek. Szczęśliwe pytania dają 2 klocki. Zbuduj 12 i wygraj!',pl:n=>n===1?'1 gracz':`${n} graczy`,name:i=>`Imię gracza ${i}`,def:i=>`Gracz ${i}`,diff:'Poziom trudności',start:'Zacznij grę',back:'← Menu',
+  turn:n=>`Ruch: ${n}`,solo:n=>`${n}: buduj wieżę!`,lucky:'✨ Szczęśliwe pytanie: 2 klocki!',good:['Dobrze! Klocek dodany 🧱','Super! Idziesz w górę ⬆️','Tak! Buduj dalej 🔨','Świetne kopanie! ⛏️','Bum! Trafione 💥','Genialnie! 🌟'],luckyGood:'Szczęście! +2 klocki ✨',
+  streak:k=>` 🔥 Seria: ${k}!`,wrong:a=>`Tym razem nie. Dobra odpowiedź to ${a}.`,last:(t,n)=>`🏁 ${t} na szczycie! Ostatnia szansa na remis: ${n}.`,and:' i ',win:n=>`Wygrywa ${n}!`,tie:'Remis!',tieText:t=>`${t} jednocześnie na szczycie.`,
+  winText:(k,o)=>`Wygrana numer ${k} 🏆 ${o}`,built:(n,k)=>`${n}: ${k} klocków.`,soloTitle:'Wieża gotowa! 🎉',soloText:(q,b)=>`Potrzebne pytania: ${q}. Twój rekord na tym poziomie: ${b}.`,again:'Zagraj jeszcze raz',menu:'Menu główne',winsSoFar:k=>`🏆 Wygrane: ${k}`,
+  sound:'🔊 Dźwięk',fx:'✨ Efekty',did:'Czy wiesz, że…',quote:'Mądre słowa',joke:'Czas na żart!',show:'Pokaż odpowiedź',cont:'Dalej',lvl:'poziom',pops:['Super!','Brawo!','Ekstra!','Tak!','Czad!']},
+ es:{title:'Torre de Números',sub:'Elige la respuesta correcta y coloca un bloque. Las preguntas de la suerte dan 2 bloques. ¡Llega a 12 para ganar!',pl:n=>n===1?'1 jugador':`${n} jugadores`,name:i=>`Nombre del jugador ${i}`,def:i=>`Jugador ${i}`,diff:'Dificultad',start:'Empezar',back:'← Menú',
+  turn:n=>`Turno de ${n}`,solo:n=>`${n}: ¡construye tu torre!`,lucky:'✨ Pregunta de la suerte: ¡vale 2 bloques!',good:['¡Correcto! Bloque colocado 🧱','¡Bien! Hacia arriba ⬆️','¡Sí! Sigue construyendo 🔨','¡Gran excavación! ⛏️','¡Bum! ¡Clavado! 💥','¡Genial! 🌟'],luckyGood:'¡Suerte! +2 bloques ✨',
+  streak:k=>` 🔥 ¡${k} seguidas!`,wrong:a=>`Esta vez no. La respuesta es ${a}.`,last:(t,n)=>`🏁 ¡${t} llegó arriba! Último intento de ${n} para empatar.`,and:' y ',win:n=>`¡Gana ${n}!`,tie:'¡Empate!',tieText:t=>`${t} llegaron arriba a la vez.`,
+  winText:(k,o)=>`Es su victoria número ${k} 🏆 ${o}`,built:(n,k)=>`${n} construyó ${k}.`,soloTitle:'¡Torre terminada! 🎉',soloText:(q,b)=>`Has necesitado ${q} preguntas. Tu récord en este nivel: ${b}.`,again:'Jugar otra vez',menu:'Menú principal',winsSoFar:k=>`🏆 Victorias: ${k}`,
+  sound:'🔊 Sonido',fx:'✨ Efectos',did:'¿Sabías que…?',quote:'Palabras sabias',joke:'¡Hora del chiste!',show:'Ver la respuesta',cont:'Continuar',lvl:'nivel',pops:['¡Súper!','¡Olé!','¡Genial!','¡Bravo!','¡Toma!']}
+};
+const U=()=>UI[LANG];
+
+/* ================= DOM PART ================= */
+if(typeof document!=='undefined'){
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MAT=[{c:'--p1',base:'#D9403A',d:'#9E2622',l:'#F2786D'},{c:'--p2',base:'#8A5CE0',d:'#5C37A6',l:'#B797F5'},{c:'--p3',base:'#E0A416',d:'#A77812',l:'#FFE27A'},{c:'--p4',base:'#2F7FD8',d:'#1D569E',l:'#7FB6F2'}];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S={n:2,players:[{lvl:2},{lvl:6},{lvl:9},{lvl:ADULT}].map((p,i)=>({...p,name:'',steps:0,streak:0,asked:0})),turn:0,busy:false,endRound:false,
+  sound:true,fx:!RM,wins:{},best:{},answered:0,recent:{},q:null,jokeI:0,factI:0};
+
+function gen(l,p){const pool=TY.map((t,i)=>i).filter(i=>l>=TY[i].a&&l<=TY[i].b),rec=S.recent[p]||[];let c=pool.filter(i=>!rec.includes(i));if(!c.length)c=pool;
+  const i=pick(c);rec.push(i);while(rec.length>Math.min(10,pool.length-1))rec.shift();S.recent[p]=rec;LV=l;return TY[i].f(l)}
+
+/* pixel art */
+function mulberry(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function texture(m,seed){const cv=document.createElement('canvas');cv.width=cv.height=8;const x=cv.getContext('2d'),rnd=mulberry(seed);
+  for(let i=0;i<8;i++)for(let j=0;j<8;j++){const v=rnd();x.fillStyle=v<.18?m.d:v<.32?m.l:m.base;x.fillRect(i,j,1,1)}x.fillStyle='#fff';x.fillRect(2,2,1,1);x.fillRect(5,5,1,1);return cv.toDataURL()}
+const MINER=["..hhhhhh..",".hhhLLhhh.",".HHHHHHHH.","..ssssss..","..sesses..","..ssmmss..",".bbbbbbbb.","sbbbbbbbbs","s.bbbbbb.s","..pppppp..","..pp..pp..","..kk..kk..",".kkk..kkk."];
+function minerSVG(i){const m=MAT[i],col={h:m.base,H:m.d,L:'#FFE35C',s:'#F1C58F',e:'#172033',m:'#9A5B3C',b:m.d,p:'#34425F',k:'#2A2626'};
+  let o=`<svg viewBox="0 0 10 13" shape-rendering="crispEdges" aria-hidden="true">`;MINER.forEach((row,y)=>[...row].forEach((ch,x)=>{if(col[ch])o+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col[ch]}"/>`}));return o+'</svg>'}
+
+/* sound */
+let actx=null;
+function tone(freqs,dur=.1,type='square'){if(!S.sound)return;try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+  freqs.forEach((f,i)=>{const o=actx.createOscillator(),g=actx.createGain(),t0=actx.currentTime+i*dur;o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(.07,t0);g.gain.exponentialRampToValueAtTime(.001,t0+dur*1.3);o.connect(g).connect(actx.destination);o.start(t0);o.stop(t0+dur*1.4)})}catch(e){}}
+
+/* effects */
+const FX={c:$('fx'),x:null,p:[],on:false};FX.x=FX.c.getContext('2d');
+function fxSize(){const d=window.devicePixelRatio||1;FX.c.width=innerWidth*d;FX.c.height=innerHeight*d;FX.x.setTransform(d,0,0,d,0,0)}
+fxSize();addEventListener('resize',fxSize);
+const PALETTE=['#D9403A','#8A5CE0','#E0A416','#2F7FD8','#23994A','#1FC8D0','#FF7AB6'];
+function fxLoop(){const x=FX.x;x.clearRect(0,0,innerWidth,innerHeight);
+  FX.p=FX.p.filter(p=>{if(p.delay>0){p.delay--;return true}p.life--;p.vy+=p.g;p.vx*=p.drag;p.vy*=p.drag;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;const a=Math.max(0,Math.min(1,p.life/30));x.globalAlpha=a;
+    if(p.t==='ring'){p.size+=p.grow;x.strokeStyle=p.color;x.lineWidth=5;x.beginPath();x.arc(p.x,p.y,p.size,0,7);x.stroke()}
+    else if(p.t==='txt'){x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.font=`${p.size}px sans-serif`;x.textAlign='center';x.textBaseline='middle';x.fillText(p.txt,0,0);x.restore()}
+    else if(p.t==='dot'){x.fillStyle=p.color;x.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size)}
+    else{x.save();x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.color;x.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);x.restore()}
+    return p.life>0&&p.y<innerHeight+80});
+  x.globalAlpha=1;if(FX.p.length)requestAnimationFrame(fxLoop);else FX.on=false}
+function spawn(o){FX.p.push(Object.assign({x:0,y:0,vx:0,vy:0,g:0,drag:1,rot:0,vr:0,life:80,size:10,color:pick(PALETTE),t:'rect',delay:0,grow:0},o));if(!FX.on){FX.on=true;requestAnimationFrame(fxLoop)}}
+const E={
+  confetti(x,y){for(let i=0;i<80;i++)spawn({x,y,vx:(Math.random()-.5)*16,vy:-Math.random()*13-3,g:.38,drag:.99,vr:(Math.random()-.5)*.4,size:8+Math.random()*8,life:90+r(0,30)})},
+  fireworks(){for(let b=0;b<4;b++){const cx=innerWidth*(.15+Math.random()*.7),cy=innerHeight*(.15+Math.random()*.35),col=pick(PALETTE);
+    for(let i=0;i<46;i++){const a=i/46*Math.PI*2,s=3+Math.random()*4;spawn({t:'dot',x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:.06,drag:.975,size:5,color:col,life:70,delay:b*12})}}},
+  rain(gl){for(let i=0;i<34;i++)spawn({t:'txt',txt:pick(gl),x:Math.random()*innerWidth,y:-40-Math.random()*200,vy:3+Math.random()*3,g:.06,vr:(Math.random()-.5)*.05,size:28+Math.random()*18,life:170})},
+  ring(x,y){for(let i=0;i<3;i++)spawn({t:'ring',x,y,size:10,grow:6+i*2,life:40,delay:i*6,color:pick(PALETTE)});for(let i=0;i<24;i++){const a=Math.random()*7,s=4+Math.random()*6;spawn({t:'txt',txt:'⭐',x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,drag:.95,size:22,life:50})}},
+  rise(x,y){for(let i=0;i<30;i++)spawn({t:'txt',txt:pick(['✨','⭐','💎','🧱']),x:x+(Math.random()-.5)*120,y,vy:-3-Math.random()*5,vx:(Math.random()-.5)*2,size:20+Math.random()*16,life:70+r(0,30)})}
+};
+function popText(t){const d=document.createElement('div');d.className='pop';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),1050)}
+function celebrate(btn,lucky,streak){if(!S.fx||RM)return;const b=btn.getBoundingClientRect(),x=b.left+b.width/2,y=b.top+b.height/2;
+  const gl=(S.q.html+S.q.label).match(/\p{Extended_Pictographic}/gu)||['⭐','🧱','💎'];
+  if(lucky){E.fireworks();E.rain(['💎','✨','🧱','⭐']);popText('+2 ✨');return}
+  pick([()=>E.confetti(x,y),()=>E.ring(x,y),()=>E.rain(gl.slice(0,4)),()=>E.rise(x,y),()=>{E.confetti(x,y);E.ring(x,y)}])();
+  if(streak>=3){E.fireworks();popText(`🔥 ×${streak}`)}else if(Math.random()<.5)popText(pick(U().pops))}
+
+/* storage */
+function load(){try{const d=JSON.parse(localStorage.getItem('mathTower.v4')||'null');
+  if(d){if(d.n>=1&&d.n<=4)S.n=d.n;if(UI[d.lang])LANG=d.lang;if(Array.isArray(d.p))d.p.forEach((p,i)=>{if(!S.players[i]||!p)return;if(typeof p.name==='string')S.players[i].name=p.name.slice(0,14);if(p.lvl>=0&&p.lvl<=ULTRA)S.players[i].lvl=p.lvl});
+    if(typeof d.sound==='boolean')S.sound=d.sound;if(typeof d.fx==='boolean')S.fx=d.fx;if(d.wins)S.wins=d.wins;if(d.best)S.best=d.best}
+  else{const nl=(navigator.language||'en').slice(0,2);LANG=UI[nl]?nl:'en'}}catch(e){}}
+function save(){try{localStorage.setItem('mathTower.v4',JSON.stringify({n:S.n,lang:LANG,p:S.players.map(p=>({name:p.name,lvl:p.lvl})),sound:S.sound,fx:S.fx,wins:S.wins,best:S.best}))}catch(e){}}
+const isDef=n=>!n||/^(Player|Gracz|Jugador) \d$/.test(n.trim());
+const nameOf=i=>isDef(S.players[i].name)?U().def(i+1):S.players[i].name.trim();
+const key=n=>n.trim().toLowerCase();
+
+/* setup */
+function buildSetup(){
+  document.documentElement.lang=LANG;document.title=U().title;$('tTitle').textContent=U().title;$('tSub').textContent=U().sub;$('startBtn').textContent=U().start;
+  const st=$('settings');st.innerHTML='';
+  [['en','🇬🇧 English'],['pl','🇵🇱 Polski'],['es','🇪🇸 Español']].forEach(([c,t])=>{const b=document.createElement('button');b.className='pbtn';b.textContent=t;b.setAttribute('aria-pressed',LANG===c);
+    b.onclick=()=>{LANG=c;S.players.forEach(p=>{if(isDef(p.name))p.name=''});save();buildSetup()};st.appendChild(b)});
+  [['sound',U().sound],['fx',U().fx]].forEach(([k,t])=>{const b=document.createElement('button');b.className='pbtn';b.textContent=t;b.setAttribute('aria-pressed',S[k]);b.onclick=()=>{S[k]=!S[k];save();buildSetup()};st.appendChild(b)});
+  const ct=$('count');ct.innerHTML='';for(let n=1;n<=4;n++){const b=document.createElement('button');b.className='pbtn';b.textContent=U().pl(n);b.setAttribute('aria-pressed',n===S.n);b.onclick=()=>{S.n=n;buildSetup()};ct.appendChild(b)}
+  const box=$('players');box.dataset.n=S.n;box.style.setProperty('--n',S.n);box.innerHTML='';const LD=LEVELS();
+  for(let p=0;p<S.n;p++){const pl=S.players[p],card=document.createElement('section');card.className='pcard px';card.style.setProperty('--pc',`var(${MAT[p].c})`);
+    card.innerHTML=`<div class="head">${minerSVG(p)}<div style="flex:1"><label for="n${p}">${U().name(p+1)}</label><input id="n${p}" maxlength="14" autocomplete="off"><div class="wins"></div></div></div>
+      <label>${U().diff}</label><div class="levels" role="group" aria-label="${U().diff}"></div><div class="preview"></div>`;
+    const inp=card.querySelector('input'),wins=card.querySelector('.wins');const sw=()=>{const w=S.wins[key(nameOf(p))]||0;wins.textContent=w?U().winsSoFar(w):''};
+    inp.value=isDef(pl.name)?'':pl.name;inp.placeholder=U().def(p+1);inp.oninput=e=>{pl.name=e.target.value;sw()};sw();
+    const lv=card.querySelector('.levels');for(let l=0;l<=ULTRA;l++){const b=document.createElement('button');b.className='pbtn lvl'+(l>=ADULT?' wide':'');b.textContent=lvlLabel(l);b.setAttribute('aria-pressed',l===pl.lvl);
+      b.onclick=()=>{pl.lvl=l;buildSetup();document.querySelector(`#players section:nth-child(${p+1}) .lvl[aria-pressed="true"]`).focus()};lv.appendChild(b)}
+    card.querySelector('.preview').textContent=LD[pl.lvl];box.appendChild(card)}
+}
+
+/* board */
+function buildField(){const f=$('field');f.style.setProperty('--n',S.n);f.innerHTML='';
+  const ru=document.createElement('div');ru.className='ruler';ru.setAttribute('aria-hidden','true');for(let i=1;i<=GOAL;i++){const d=document.createElement('div');d.textContent=i===GOAL?'🏁':i;ru.appendChild(d)}f.appendChild(ru);
+  for(let p=0;p<S.n;p++){const m=MAT[p],col=document.createElement('div');col.className='tcol';col.id='col'+p;col.style.setProperty('--pc',`var(${m.c})`);
+    col.innerHTML=`<div class="pname">${esc(nameOf(p))}</div><div class="score" id="score${p}"></div><div class="tower" id="tower${p}"><div class="miner" id="miner${p}"><span class="crown">👑</span>${minerSVG(p)}</div></div>`;
+    const t=col.querySelector('.tower');for(let i=0;i<GOAL;i++){const b=document.createElement('div');b.className='block';b.style.setProperty('--tex',`url(${texture(m,p*100+i)})`);t.appendChild(b)}f.appendChild(col)}}
+function renderTower(p,added){const pl=S.players[p];
+  $('tower'+p).querySelectorAll('.block').forEach((b,i)=>{b.classList.toggle('on',i<pl.steps);if(added&&i>=pl.steps-added&&i<pl.steps){b.classList.remove('drop');void b.offsetWidth;b.classList.add('drop')}});
+  const mn=$('miner'+p);mn.style.setProperty('--s',pl.steps);if(added){mn.classList.remove('hop');void mn.offsetWidth;mn.classList.add('hop')}
+  $('score'+p).textContent=`${pl.steps}/${GOAL} · ${lvlLabel(pl.lvl)}`}
+function setPV(el,p){const c=MAT[p].c;el.style.setProperty('--pc',`var(${c})`);el.style.setProperty('--pc-soft',`var(${c}-soft)`)}
+function icons(){$('soundBtn').textContent=S.sound?'🔊':'🔇';$('fxBtn').textContent=S.fx?'✨':'▫️';$('soundBtn').setAttribute('aria-label',U().sound);$('fxBtn').setAttribute('aria-label',U().fx)}
+
+/* flow */
+function startGame(){for(let i=0;i<S.n;i++){const p=S.players[i];p.steps=0;p.streak=0;p.asked=0}
+  S.turn=0;S.endRound=false;S.busy=false;S.answered=0;save();
+  $('setup').classList.add('hidden');$('game').classList.remove('hidden');$('overlay').classList.add('hidden');
+  $('backBtn').textContent=U().back;buildField();for(let p=0;p<S.n;p++)renderTower(p);icons();nextQuestion()}
+function nextQuestion(msg){const p=S.turn,pl=S.players[p];S.q=gen(pl.lvl,p);pl.asked++;S.busy=false;
+  S.q.lucky=!S.endRound&&pl.steps<GOAL-1&&Math.random()<.12;const card=$('qcard');setPV(card,p);setPV($('turnLabel'),p);card.classList.toggle('lucky',S.q.lucky);
+  $('turnLabel').textContent=S.n===1?U().solo(nameOf(p)):U().turn(nameOf(p));for(let i=0;i<S.n;i++)$('col'+i).classList.toggle('idle',S.n>1&&i!==p);
+  $('badge').textContent=msg||(S.q.lucky?U().lucky:'');$('qlabel').textContent=S.q.label;$('eq').innerHTML=S.q.html;$('eq').classList.toggle('hidden',!S.q.html);$('feedback').textContent='';
+  const box=$('answers');box.style.setProperty('--k',S.q.opts.length);box.innerHTML='';
+  S.q.opts.forEach((o,i)=>{const b=document.createElement('button');b.className='pbtn ans'+(S.q.cls?' '+S.q.cls:'');b.innerHTML=o.h;b.dataset.v=o.v;b.onclick=()=>answer(b,o.v);box.appendChild(b)})}
+function answer(btn,v){if(S.busy)return;S.busy=true;const p=S.turn,pl=S.players[p],ok=v===S.q.ans;S.answered++;
+  if(ok){btn.classList.add('right');const gain=Math.min(S.q.lucky?2:1,GOAL-pl.steps);pl.steps+=gain;pl.streak++;renderTower(p,gain);
+    $('feedback').textContent=(S.q.lucky?U().luckyGood:pick(U().good))+(pl.streak>=3?U().streak(pl.streak):'');
+    S.q.lucky?tone([523,659,784,1047,1319],.08):tone([392,523,659],.08);celebrate(btn,S.q.lucky,pl.streak)}
+  else{pl.streak=0;btn.classList.add('wrong');let right='';document.querySelectorAll('.ans').forEach(b=>{if(b.dataset.v===S.q.ans){b.classList.add('right');right=b.textContent||'✔'}});
+    $('feedback').textContent=U().wrong(right);tone([196,147],.14)}
+  setTimeout(()=>afterAnswer(p),ok?1200:2200)}
+function afterAnswer(p){const P=S.players.slice(0,S.n);let next;
+  if(S.n===1){if(P[0].steps>=GOAL)return finish([0]);next=()=>nextQuestion()}
+  else{if(!S.endRound&&P[p].steps>=GOAL)S.endRound=true;
+    if(S.endRound){const top=P.map((x,i)=>i).filter(i=>P[i].steps>=GOAL);let q=-1;for(let j=p+1;j<S.n;j++)if(P[j].steps===GOAL-1){q=j;break}
+      if(q<0)return finish(top);S.turn=q;next=()=>nextQuestion(U().last(top.map(i=>nameOf(i)).join(U().and),nameOf(q)))}
+    else{S.turn=(p+1)%S.n;next=()=>nextQuestion()}}
+  if(S.answered%6===0)showFlash(next);else next()}
+function showFlash(done){const f=$('flash'),joke=S.answered%12===6;let item;
+  if(joke){const L=JOKES.filter(j=>j[LANG]);item=L[S.jokeI++%L.length]}else{const L=FACTS.filter(j=>j[LANG]);item=L[S.factI++%L.length]}
+  const c=item[LANG],quote=!joke&&item.q;$('fIcon').textContent=joke?'😂':quote?'💬':'💡';$('fTitle').textContent=joke?U().joke:quote?U().quote:U().did;
+  $('fText').textContent=joke||quote?c[0]:c;$('fWho').textContent=quote?'— '+c[1]:'';$('fWho').classList.toggle('hidden',!quote);
+  $('fAns').textContent=joke?c[1]:'';$('fAns').classList.add('hidden');$('fShow').textContent=U().show;$('fShow').classList.toggle('hidden',!joke);$('fCont').textContent=U().cont;$('fCont').classList.toggle('hidden',!!joke);
+  $('fShow').onclick=()=>{$('fAns').classList.remove('hidden');$('fShow').classList.add('hidden');$('fCont').classList.remove('hidden');$('fCont').focus();tone([330,262,392],.09,'triangle');if(S.fx&&!RM)E.rain(['😂','🤣','😆'])};
+  $('fCont').onclick=()=>{f.classList.add('hidden');done()};f.classList.remove('hidden');(joke?$('fShow'):$('fCont')).focus();tone([660,880],.08,'triangle')}
+function finish(winners){S.busy=true;const P=S.players.slice(0,S.n),wb=$('winbox');
+  if(S.n===1){const nm=nameOf(0),k=key(nm)+'|'+P[0].lvl,q=P[0].asked;S.best[k]=Math.min(S.best[k]||Infinity,q);setPV(wb,0);$('winTitle').textContent=U().soloTitle;$('winText').textContent=U().soloText(q,S.best[k])}
+  else{winners.forEach(i=>{const k=key(nameOf(i));S.wins[k]=(S.wins[k]||0)+1});
+    if(winners.length>1){wb.style.setProperty('--pc','var(--good)');$('winTitle').textContent=U().tie;$('winText').textContent=U().tieText(winners.map(i=>nameOf(i)).join(U().and))}
+    else{const w=winners[0];setPV(wb,w);$('winTitle').textContent=U().win(nameOf(w));$('winText').textContent=U().winText(S.wins[key(nameOf(w))],P.map((x,i)=>i).filter(i=>i!==w).map(i=>U().built(nameOf(i),P[i].steps)).join(' '))}}
+  save();$('winAv').innerHTML=winners.map(minerSVG).join('');$('againBtn').textContent=U().again;$('newBtn').textContent=U().menu;
+  for(let i=0;i<S.n;i++){$('col'+i).classList.remove('idle');$('col'+i).classList.toggle('won',winners.includes(i))}
+  $('overlay').classList.remove('hidden');tone([523,659,784,1047,784,1047],.11);if(S.fx&&!RM){E.fireworks();setTimeout(E.fireworks,700);E.rain(['🏆','⭐','🧱','💎'])}$('againBtn').focus()}
+
+function toSetup(){$('overlay').classList.add('hidden');$('flash').classList.add('hidden');$('game').classList.add('hidden');$('setup').classList.remove('hidden');buildSetup()}
+$('startBtn').onclick=startGame;$('againBtn').onclick=startGame;$('newBtn').onclick=toSetup;$('backBtn').onclick=toSetup;
+$('soundBtn').onclick=()=>{S.sound=!S.sound;icons();save()};$('fxBtn').onclick=()=>{S.fx=!S.fx;icons();save()};
+document.addEventListener('keydown',e=>{if($('game').classList.contains('hidden')||S.busy||!$('flash').classList.contains('hidden'))return;
+  const i=parseInt(e.key,10),btns=document.querySelectorAll('.ans');if(i>=1&&i<=btns.length)btns[i-1].click()});
+load();buildSetup();
+}
+</script>
+</body>
+</html>
