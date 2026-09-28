@@ -116,6 +116,8 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
 .ill{width:auto;height:clamp(110px,22vw,170px);max-width:100%}
 .ill.die{height:clamp(76px,15vw,104px)}
 .ans .ill{height:64px}
+.ans.clk .ill{height:96px}
+.ill.big{height:clamp(190px,34vw,260px)}
 .ill text{font-family:"Nunito",sans-serif;font-weight:700}
 .fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.85em}
 .fr span+span{border-top:.07em solid currentColor;padding-top:.04em;min-width:1.2em}
@@ -158,6 +160,8 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
 .pop{position:fixed;left:50%;top:38%;z-index:16;pointer-events:none;font-family:"Pixelify Sans","Nunito",sans-serif;font-size:clamp(3rem,12vw,6rem);color:#fff;
   text-shadow:0 4px 0 #172033,4px 0 0 #172033,-4px 0 0 #172033,0 -4px 0 #172033,6px 8px 0 rgba(0,0,0,.25);animation:popT 1s ease-out forwards}
 @keyframes popT{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}20%{transform:translate(-50%,-50%) scale(1.15);opacity:1}70%{transform:translate(-50%,-60%) scale(1);opacity:1}100%{transform:translate(-50%,-90%) scale(.9);opacity:0}}
+.ver{display:inline-block;margin-top:8px;font-size:.9rem;font-weight:700;background:var(--panel);border:3px solid var(--edge);padding:0 8px}
+:root:fullscreen{overflow-y:auto;background:var(--sky)}:root:-webkit-full-screen{overflow-y:auto;background:var(--sky)}::backdrop{background:var(--sky)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -168,7 +172,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <main id="setup" class="wrap">
-  <div class="title"><h1 id="tTitle"></h1><p id="tSub"></p></div>
+  <div class="title"><h1 id="tTitle"></h1><div class="ver">v1.1</div><p id="tSub"></p></div>
   <div class="settings" id="settings"></div>
   <div class="count" id="count" role="group"></div>
   <div class="players" id="players"></div>
@@ -179,7 +183,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
   <div class="topbar">
     <button class="pbtn icon" id="backBtn"></button>
     <div class="turn px" id="turnLabel"></div>
-    <div class="grp2"><button class="pbtn icon" id="fxBtn"></button><button class="pbtn icon" id="soundBtn"></button></div>
+    <div class="grp2"><button class="pbtn icon" id="fsBtn">⛶</button><button class="pbtn icon" id="fxBtn"></button><button class="pbtn icon" id="soundBtn"></button></div>
   </div>
   <div class="field" id="field"></div>
   <section class="qcard px" id="qcard">
@@ -562,6 +566,127 @@ add(13,13,()=>{const n=pick([4,6,8,10,12,20]);return T(tr('Expected value of a f
 add(13,13,()=>{const g=r(6,30),a=g*r(3,9),b=g*r(2,7);return N(tr('Greatest common divisor','Największy wspólny dzielnik','Máximo común divisor'),`<span>${tr('GCD','NWD','MCD')}(${a}, ${b})</span>`,gcd(a,b),{min:1})});
 add(13,13,()=>T(tr('Telescoping series','Szereg teleskopowy','Serie telescópica'),`<span>Σ<sub>k=1</sub><sup>∞</sup> ${fr(1,'k(k+1)')}</span>`,'1',['1/2','2','∞','e']));
 
+/* ===== v1.1 new question types ===== */
+const NW={en:{o:['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'],t:['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'],j:'-'},
+ pl:{o:['zero','jeden','dwa','trzy','cztery','pięć','sześć','siedem','osiem','dziewięć','dziesięć','jedenaście','dwanaście','trzynaście','czternaście','piętnaście','szesnaście','siedemnaście','osiemnaście','dziewiętnaście'],t:['','','dwadzieścia','trzydzieści','czterdzieści','pięćdziesiąt','sześćdziesiąt','siedemdziesiąt','osiemdziesiąt','dziewięćdziesiąt'],j:' '},
+ es:{o:['cero','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'],t:['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'],j:' y '}};
+function words(n){const W=NW[LANG],lim=LANG==='es'?30:20;if(n<lim)return W.o[n];const t=Math.floor(n/10),o=n%10;return W.t[t]+(o?W.j+W.o[o]:'')}
+function barChart(v,e){const n=v.length,W=n*58+44,mx=Math.max(...v),u=140/mx;let s=`<svg class="ill" style="height:clamp(160px,30vw,220px)" viewBox="0 0 ${W} 192" role="img" aria-label="bar chart">`;
+  for(let i=0;i<=mx;i++){const y=160-i*u;s+=`<line x1="32" y1="${y}" x2="${W-4}" y2="${y}" style="stroke:var(--ink);stroke-opacity:.18;stroke-width:1.5"/><text x="26" y="${y+5}" text-anchor="end" style="font-size:13px;fill:var(--ink)">${i}</text>`}
+  v.forEach((h,i)=>{const x=44+i*58;s+=`<rect x="${x}" y="${160-h*u}" width="40" height="${h*u}" style="fill:${['#E53935','#1E88E5','#43A047','#F2B53A'][i]};stroke:#172033;stroke-width:2.5"/><text x="${x+20}" y="186" text-anchor="middle" style="font-size:21px">${e[i]}</text>`});
+  return s+'</svg>'}
+const BOX=()=>tr('What number goes in the box?','Jaka liczba pasuje do ramki?','¿Qué número va en la casilla?');
+
+add(0,2,()=>{const P=[['🔑','🔒'],['🐝','🍯'],['🐶','🦴'],['🐰','🥕'],['🐒','🍌'],['🧦','👟'],['🌧️','☂️'],['✏️','📓'],['🍼','👶'],['⚽','🥅'],['🪥','🦷'],['🐄','🥛']],[a,b2]=pick(P);
+  return T(tr('What goes together?','Co do siebie pasuje?','¿Qué va junto?'),`<span>${a} + ❓</span>`,b2,picks(P.filter(p=>p[1]!==b2).map(p=>p[1]),2),'',3)});
+add(0,2,()=>{const v=picks(ALL,3);return T(tr('Which one is in the middle?','Co jest w środku?','¿Qué está en el medio?'),`<span class="grp">${v.join(' ')}</span>`,v[1],v,'',3)});
+add(1,3,()=>{const[a,b2,c]=picks(ALL,3),pat=[a,b2,a,b2,a,b2],k=r(1,5);return T(tr('What is missing?','Czego brakuje?','¿Qué falta?'),`<span class="grp">${pat.map((x,i)=>i===k?'❓':x).join('')}</span>`,pat[k],[a,b2,c],'',3)});
+add(2,4,()=>{const[v,w]=pick([['🚲',2],['🚗',4],['🛴',2],['🛵',2],['🚙',4]]),n=r(2,4);return N(tr('How many wheels altogether?','Ile kół jest razem?','¿Cuántas ruedas hay en total?'),`<span class="grp">${v.repeat(n)}</span>`,n*w,{min:1,trap:n+w})});
+add(2,4,()=>{const e=pick(['🙂','🐱','🐶','🐸','🐼']),n=r(2,6);return N(tr('How many eyes altogether?','Ile jest oczu razem?','¿Cuántos ojos hay en total?'),`<span class="grp">${e.repeat(n)}</span>`,2*n,{min:1,trap:n})});
+add(2,6,l=>{const n=l<=4?r(1,10):r(11,99),sw=(n%10)*10+Math.floor(n/10);return N(tr('Which number is written here?','Jaka liczba jest tu zapisana?','¿Qué número está escrito aquí?'),`<span class="sm">${words(n)}</span>`,n,{min:1,trap:n>10&&sw!==n&&n%10?sw:null})});
+add(2,6,l=>{const n=l<=4?r(1,10):r(11,99),w=[n+1,n-1,n+10<100?n+10:n-10,(n%10)*10+Math.floor(n/10)].filter(x=>x>=0&&x<100&&x!==n).map(words);
+  return T(tr('How do you write this number in words?','Jak zapisać tę liczbę słowami?','¿Cómo se escribe este número con letras?'),`<span>${n}</span>`,words(n),w,'txt')});
+add(3,5,l=>{const s0=r(5,l===3?10:20);return N(tr('🚀 Countdown! What comes next?','🚀 Odliczanie! Co dalej?','🚀 ¡Cuenta atrás! ¿Qué sigue?'),`<span>${s0}, ${s0-1}, ${s0-2}, ❓</span>`,s0-3)});
+add(5,7,l=>{const st=r(0,10),j=r(2,l===5?3:6),k=r(3,5);return N(tr(`🦘 starts at ${st} and jumps +${j}, ${k} times. Where does it land?`,`🦘 startuje z ${st} i skacze ${k} razy o ${j} do przodu. Gdzie wyląduje?`,`🦘 sale del ${st} y salta +${j} ${k} veces. ¿Dónde cae?`),`<span>${st} ➜ ❓</span>`,st+j*k,{trap:st+j+k})});
+add(5,7,()=>{const a=r(2,9),b2=r(2,9),c=r(1,a+b2-1);return N(tr('Make both sides equal. What goes in the box?','Obie strony mają być równe. Co wpisać w ramkę?','Los dos lados deben ser iguales. ¿Qué va en la casilla?'),`<span>□ + ${c} = ${a} + ${b2}</span>`,a+b2-c)});
+add(5,8,l=>{const e=picks(FOOD,4);let v;do{v=e.map(()=>r(1,l<=6?8:10))}while(new Set(v).size<3);const t=r(0,2),i=r(0,3);let lab,ans;
+  if(t===0){lab=tr(`How many ${e[i]}?`,`Ile jest ${e[i]}?`,`¿Cuántos ${e[i]} hay?`);ans=v[i]}
+  else if(t===1){const ix=[0,1,2,3].sort((x,y)=>v[y]-v[x]),a=ix[0],b2=ix[3];lab=tr(`How many more ${e[a]} than ${e[b2]}?`,`O ile więcej jest ${e[a]} niż ${e[b2]}?`,`¿Cuántos ${e[a]} más que ${e[b2]} hay?`);ans=v[a]-v[b2]}
+  else{lab=tr('How many are there altogether?','Ile jest wszystkiego razem?','¿Cuántos hay en total?');ans=v.reduce((x,y)=>x+y,0)}
+  return N('📊 '+lab,barChart(v,e),ans,{min:1})});
+add(6,9,l=>{let a,b2;if(l===6){[a,b2]=pick([[1,r(2,9)],[2,0],[10,0]])}else{a=r(2,l===7?3:5);b2=r(0,l===7?3:9)}const xs=picks([1,2,3,4,5,6,7,8,10],4),f=x=>a*x+b2;
+  return N(tr('🤖 The machine has a secret rule. What comes out?','🤖 Maszyna ma tajną regułę. Co z niej wyjdzie?','🤖 La máquina tiene una regla secreta. ¿Qué sale?'),`<div class="col sm">${xs.slice(0,3).map(x=>`<span>${x} → ${f(x)}</span>`).join('')}<span>${xs[3]} → ?</span></div>`,f(xs[3]))});
+add(7,9,()=>{const d=r(3,9),q=r(2,9),rm=r(1,d-1);return N(tr('What is the remainder?','Jaka jest reszta?','¿Cuál es el resto?'),`<span>${d*q+rm} ${DIV()} ${d} = ${q} ${tr('R','r.','resto')} ?</span>`,rm,{trap:q})});
+add(8,10,()=>{const[a,b2]=picks([2,3,4,5,6,8,10],2);return T(tr('Which fraction is bigger?','Który ułamek jest większy?','¿Qué fracción es mayor?'),'<span>🍫</span>',fr(1,Math.min(a,b2)),[fr(1,Math.max(a,b2))],'',2)});
+add(9,10,()=>T(tr('Which one is a square number?','Która liczba jest kwadratem liczby naturalnej?','¿Cuál es un cuadrado perfecto?'),'<span>🟩</span>',pick([16,25,36,49,64,81,100,121,144]),picks([18,24,27,32,40,45,50,60,72,90,98,120],3)));
+add(9,11,()=>{const P=[[50,fr(1,2)],[25,fr(1,4)],[75,fr(3,4)],[20,fr(1,5)],[10,fr(1,10)],[40,fr(2,5)]],[pc,f]=pick(P);return T(tr('Which fraction is it?','Jaki to ułamek?','¿Qué fracción es?'),`<span>${pc}%</span>`,f,[...P.map(x=>x[1]),fr(1,3)])});
+add(9,11,()=>{const e=r(1,3),p=r(4,8),k=r(2,5);return N(tr('🥞 Pancake recipe: how many 🥚 do you need?','🥞 Przepis na naleśniki: ile 🥚 potrzeba?','🥞 Receta de tortitas: ¿cuántos 🥚 necesitas?'),`<div class="col sm"><span>${e} 🥚 → ${p} 🥞</span><span>? 🥚 → ${p*k} 🥞</span></div>`,e*k,{min:1,trap:e+k})});
+add(9,10,()=>{const f=r(-3,4),u=nz(-6,7);return N(tr('🛗 Lift: which floor are you on now?','🛗 Winda: na którym piętrze jesteś teraz?','🛗 Ascensor: ¿en qué planta estás ahora?'),`<span>${fmt(f)} ${u>0?'⬆️':'⬇️'} ${Math.abs(u)}</span>`,f+u,{neg:true,trap:f-u})});
+add(8,10,()=>{const a=r(3,12),b2=r(3,12),c=r(Math.abs(a-b2)+1,a+b2-1);return N(tr('Perimeter of the triangle (cm)','Obwód trójkąta (cm)','Perímetro del triángulo (cm)'),`<span class="sm">${a} cm, ${b2} cm, ${c} cm</span>`,a+b2+c,{trap:a+b2})});
+add(10,11,()=>{const sd=r(2,7);return N(tr(`Surface area of a cube with edge ${sd} cm (cm²)`,`Pole powierzchni sześcianu o krawędzi ${sd} cm (cm²)`,`Área total de un cubo de arista ${sd} cm (cm²)`),'<span>🧊</span>',6*sd*sd,{trap:sd**3})});
+add(9,11,()=>{let ex,val,g=0;do{const a=r(2,6),b2=r(2,6),c=r(2,6);ex=[[`${a} + ${b2} × ${c}`,a+b2*c],[`(${a} + ${b2}) × ${c}`,(a+b2)*c],[`${a} × ${b2} + ${c}`,a*b2+c],[`${a} × (${b2} + ${c})`,a*(b2+c)]];}while(new Set(ex.map(e=>e[1])).size<4&&g++<60);
+  const t=pick(ex);val=t[1];return T(tr(`Which one equals ${val}?`,`Które wyrażenie daje ${val}?`,`¿Cuál da ${val}?`),'<span>🧮</span>',t[0],ex.map(e=>e[0]),'txt')});
+add(6,8,()=>{const k=r(5,9),a=r(k+2,19);return N(tr(`🎂 In ${k} years 🧒 will be ${a}. How old is 🧒 now?`,`🎂 Za ${k} lat 🧒 będzie mieć ${a} lat. Ile ma teraz?`,`🎂 Dentro de ${k} años 🧒 tendrá ${a}. ¿Cuántos años tiene ahora?`),'<span>🧒🎈</span>',a-k,{trap:a+k})});
+add(9,11,()=>{const n=r(3,10);return N(tr(`🤝 ${n} people. Everyone shakes hands with everyone else once. How many handshakes?`,`🤝 Osób: ${n}. Każdy podaje rękę każdemu dokładnie raz. Ile jest uścisków dłoni?`,`🤝 Hay ${n} personas. Cada una da la mano a todas las demás una vez. ¿Cuántos apretones hay?`),'<span>🙋🤝🙋</span>',n*(n-1)/2,{trap:n*(n-1)})});
+add(8,10,l=>{const a=r(2,5),b2=r(2,4),c=l===10?r(2,3):1;return N(tr('How many different outfits can you make?','Ile różnych strojów można ułożyć?','¿Cuántos conjuntos distintos puedes formar?'),`<span class="grp sm">${'👕'.repeat(a)}<br>${'👖'.repeat(b2)}${c>1?'<br>'+'🧢'.repeat(c):''}</span>`,a*b2*c,{trap:a+b2+(c>1?c:0)})});
+add(7,9,()=>{const h=r(6,20),m=pick([0,15,30,45]),d=r(2,6),H=(h+d)%24;return T(tr(`It is ${tm(h,m)}. What time will it be in ${d} hours?`,`Jest ${tm(h,m)}. Która godzina będzie za ${d} godz.?`,`Son las ${tm(h,m)}. ¿Qué hora será dentro de ${d} horas?`),'<span>⏰</span>',tm(H,m),[tm((H+1)%24,m),tm((H+23)%24,m),tm(H,(m+15)%60),tm((H+12)%24,m)])});
+add(7,9,()=>{const M=MONTHS[LANG],D=[31,28,31,30,31,30,31,31,30,31,30,31];let i;do{i=r(0,11)}while(i===1);return T(tr(`How many days does ${M[i]} have?`,`Ile dni ma ${M[i]}?`,`¿Cuántos días tiene ${M[i]}?`),'<span>🗓️</span>',D[i],[28,29,30,31])});
+add(6,8,()=>{const h=r(1,9),k=r(0,2),m=pick([15,30,45]);return N(tr('How many minutes pass?','Ile minut mija?','¿Cuántos minutos pasan?'),`<span>${tm(h,0)} → ${tm(h+k,m)}</span>`,60*k+m,{min:1,trap:100*k+m})});
+add(4,6,l=>{const n=r(2,l===4?4:7);return N(tr('How many legs do the 🐔 have altogether?','Ile nóg mają razem 🐔?','¿Cuántas patas tienen las 🐔 en total?'),`<span class="grp">${'🐔'.repeat(n)}</span>`,2*n,{min:1,trap:n})});
+add(11,11,()=>{const k=pick([5,7]),arr=[...Array(k)].map(()=>r(1,40));const med=[...arr].sort((a,b2)=>a-b2)[(k-1)/2];return N(tr('What is the median?','Jaka jest mediana?','¿Cuál es la mediana?'),`<span class="sm">${arr.join(', ')}</span>`,med,{trap:arr[(k-1)/2]})});
+add(11,11,()=>{const P=r(1,9)*1000,rt=pick([10,20]);return N(tr(`🏦 ${P} at ${rt}% a year, compounded yearly. How much after 2 years?`,`🏦 ${P} na lokacie ${rt}% rocznie z roczną kapitalizacją. Ile będzie po 2 latach?`,`🏦 ${P} al ${rt}% anual con interés compuesto. ¿Cuánto habrá tras 2 años?`),'<span>💰📈</span>',Math.round(P*(1+rt/100)**2),{trap:P+2*P*rt/100})});
+add(11,11,()=>{const b2=r(2,20),h=2*r(1,9);return N(tr('Area of the triangle (base a, height h)','Pole trójkąta (podstawa a, wysokość h)','Área del triángulo (base a, altura h)'),`<span class="sm">a = ${b2}, h = ${h}</span>`,b2*h/2,{trap:b2*h})});
+add(11,11,()=>{const a=r(2,6),x0=r(-5,8),b2=r(-10,10),c=a*x0+b2-r(1,a);return N(tr('Smallest integer x that works','Najmniejsza liczba całkowita x','Menor número entero x'),`<span>${a}x ${sgn(b2)} &gt; ${fmt(c)}</span>`,x0,{neg:true,trap:x0-1})});
+add(11,11,()=>{const n=r(5,9);return T(tr('Sum of the exterior angles (°)','Suma kątów zewnętrznych (°)','Suma de los ángulos exteriores (°)'),polyPic(n),'360',['180','540','720',String((n-2)*180)])});
+add(12,12,()=>{const a=nz(-5,6),b2=nz(-5,6),k=r(-3,4);return N(tr('Derivative','Pochodna','Derivada'),`<span class="sm">f(x) = (x ${sgn(a)})(x ${sgn(b2)}), f′(${fmt(k)}) = ?</span>`,2*k+a+b2,{neg:true,trap:(k+a)*(k+b2)})});
+add(12,13,()=>{const I=[['2x','x<sup>2</sup> + C'],['3x<sup>2</sup>','x<sup>3</sup> + C'],['cos x','sin x + C'],['eˣ','eˣ + C'],['1/x','ln|x| + C'],['sin x','−cos x + C']],[q,a]=pick(I);return T(tr('Indefinite integral','Całka nieoznaczona','Integral indefinida'),`<span>∫ ${q} dx</span>`,a,I.map(x=>x[1]),'txt')});
+add(12,12,()=>{const e=r(2,6),f=r(2,4);return N(tr('Logarithms','Logarytmy','Logaritmos'),`<span class="sm">log<sub>2</sub> ${2**e} · log<sub>3</sub> ${3**f}</span>`,e*f,{trap:e+f})});
+add(12,12,()=>{const u=[r(-6,6),r(-6,6)],v=[r(-6,6),r(-6,6)];return N(tr('Dot product','Iloczyn skalarny','Producto escalar'),`<span>(${fmt(u[0])}, ${fmt(u[1])}) · (${fmt(v[0])}, ${fmt(v[1])})</span>`,u[0]*v[0]+u[1]*v[1],{neg:true,trap:u[0]*v[1]+u[1]*v[0]})});
+add(13,13,()=>{const k=r(2,9);return T(tr('Derivative','Pochodna','Derivada'),`<span class="sm">f(x) = ln x, f′(${k}) = ?</span>`,fr(1,k),[String(k),fr(1,k*k),fr(1,k+1),'0'])});
+add(13,13,()=>{const A=[r(-4,6),r(-4,6),r(-4,6),r(-4,6)],B=[r(-4,6),r(-4,6),r(-4,6),r(-4,6)],M=x=>`<span class="mat" style="grid-template-columns:auto auto">${x.map(v=>`<span>${fmt(v)}</span>`).join('')}</span>`;
+  return N(tr('Matrix product: top-left entry','Iloczyn macierzy: element w lewym górnym rogu','Producto de matrices: elemento superior izquierdo'),`<span>${M(A)} · ${M(B)}</span>`,A[0]*B[0]+A[1]*B[2],{neg:true,trap:A[0]*B[0]+A[1]*B[1]})});
+add(13,13,()=>{const n=pick([7,8,9,10,11,12,13,14,15,16,18,20,21,25]);let c=0;for(let i=1;i<=n;i++)if(gcd(i,n)===1)c++;return N(tr('Euler’s totient','Funkcja Eulera','Función φ de Euler'),`<span>φ(${n})</span>`,c,{trap:n-1})});
+add(13,13,()=>{const n=r(3,10);return N(tr('Sum of binomial coefficients','Suma współczynników dwumianowych','Suma de coeficientes binomiales'),`<span>Σ<sub>k=0</sub><sup>${n}</sup> <span class="binom"><span>${n}</span><span>k</span></span></span>`,2**n,{trap:n*n})});
+add(13,13,()=>{const[f,p,a]=pick([['eˣ','x<sup>3</sup>','1/6'],['sin x','x<sup>3</sup>','−1/6'],['cos x','x<sup>2</sup>','−1/2'],['eˣ','x<sup>2</sup>','1/2'],['ln(1 + x)','x<sup>2</sup>','−1/2']]);return T(tr(`Taylor series of ${f}: coefficient of ${p}`,`Szereg Taylora ${f}: współczynnik przy ${p}`,`Serie de Taylor de ${f}: coeficiente de ${p}`),`<span>${f}</span>`,a,['1/6','−1/6','1/2','−1/2','1/24','1'],'txt')});
+add(13,13,()=>{const n=r(12,100);let c=0;for(let i=1;i<=n;i++)if(n%i===0)c++;return N(tr('Number of divisors','Liczba dzielników','Número de divisores'),`<span>d(${n})</span>`,c,{min:1,trap:c+2})});
+
+
+/* ===== v1.1 extra question types (batch 2) ===== */
+function tally(n){let s='',x=14;const g=Math.floor(n/5),rem=n%5,W=g*64+rem*14+28,ln=(x1,y1,x2,y2,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${c};stroke-width:4.5;stroke-linecap:round"/>`;
+  for(let i=0;i<g;i++){for(let j=0;j<4;j++)s+=ln(x+j*12,10,x+j*12,62,'var(--ink)');s+=ln(x-7,54,x+43,18,'#D9403A');x+=64}
+  for(let j=0;j<rem;j++)s+=ln(x+j*12,10,x+j*12,62,'var(--ink)');
+  return `<svg class="ill die" viewBox="0 0 ${W} 72" role="img" aria-label="tally marks">${s}</svg>`}
+function clockSm(h,m){const ha=((h%12)+m/60)*30*Math.PI/180,ma=m*6*Math.PI/180;let s=`<svg class="ill" viewBox="0 0 100 100" role="img" aria-label="clock"><circle cx="50" cy="50" r="45" style="fill:#fff;stroke:#172033;stroke-width:5"/>`;
+  for(let i=0;i<12;i++){if(i%3===0)continue;const a=i*30*Math.PI/180;s+=`<line x1="${50+40*Math.sin(a)}" y1="${50-40*Math.cos(a)}" x2="${50+34*Math.sin(a)}" y2="${50-34*Math.cos(a)}" style="stroke:#172033;stroke-width:3"/>`}
+  [[12,0],[3,90],[6,180],[9,270]].forEach(([t,d])=>{const a=d*Math.PI/180;s+=`<text x="${50+33*Math.sin(a)}" y="${50-33*Math.cos(a)+6}" text-anchor="middle" style="font-size:17px;fill:#172033">${t}</text>`});
+  s+=`<line x1="50" y1="50" x2="${50+20*Math.sin(ha)}" y2="${50-20*Math.cos(ha)}" style="stroke:#D9403A;stroke-width:7;stroke-linecap:round"/><line x1="50" y1="50" x2="${50+32*Math.sin(ma)}" y2="${50-32*Math.cos(ma)}" style="stroke:#172033;stroke-width:4;stroke-linecap:round"/>`;
+  return s+'<circle cx="50" cy="50" r="4.5" style="fill:#172033"/></svg>'}
+function thermo(t,st){const y=v=>170-v*3.5;let s=`<svg class="ill big" viewBox="0 0 110 205" role="img" aria-label="thermometer"><rect x="40" y="16" width="22" height="166" rx="11" style="fill:#fff;stroke:#172033;stroke-width:4"/><circle cx="51" cy="184" r="16" style="fill:#E53935;stroke:#172033;stroke-width:4"/><rect x="45" y="${y(t)}" width="12" height="${184-y(t)}" style="fill:#E53935"/>`;
+  for(let v=0;v<=40;v+=st){const big=v%10===0;s+=`<line x1="62" y1="${y(v)}" x2="${big?78:71}" y2="${y(v)}" style="stroke:var(--ink);stroke-width:${big?3:2}"/>`;if(big)s+=`<text x="82" y="${y(v)+6}" style="font-size:16px;fill:var(--ink)">${v}</text>`}
+  return s+'</svg>'}
+function bars(nm,v,M){const y=k=>140-k*(120/M);let s=`<svg class="ill big" viewBox="0 0 264 172" role="img" aria-label="bar chart">`;
+  for(let k=0;k<=M;k++){s+=`<line x1="36" y1="${y(k)}" x2="258" y2="${y(k)}" style="stroke:var(--ink);stroke-opacity:${k?0.2:0.9};stroke-width:${k?1.5:3}"/>`;if(k%2===0)s+=`<text x="28" y="${y(k)+5}" text-anchor="end" style="font-size:15px;fill:var(--ink)">${k}</text>`}
+  const C=['#E53935','#1E88E5','#43A047'];v.forEach((k,i)=>{const x=54+i*72;s+=`<rect x="${x}" y="${y(k)}" width="44" height="${140-y(k)}" style="fill:${C[i]};stroke:#172033;stroke-width:2.5"/><text x="${x+22}" y="162" text-anchor="middle" style="font-size:16px;fill:var(--ink)">${nm[i]}</text>`});return s+'</svg>'}
+function gridPic(x,y,e){const X=v=>34+v*30,Y=v=>160-v*30;let s=`<svg class="ill big" viewBox="0 0 196 190" role="img" aria-label="grid">`;
+  for(let i=0;i<=5;i++){s+=`<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(5)}" style="stroke:var(--ink);stroke-opacity:.28;stroke-width:1.5"/><line x1="${X(0)}" y1="${Y(i)}" x2="${X(5)}" y2="${Y(i)}" style="stroke:var(--ink);stroke-opacity:.28;stroke-width:1.5"/><text x="${X(i)}" y="182" text-anchor="middle" style="font-size:16px;fill:var(--ink)">${i}</text>`;if(i)s+=`<text x="18" y="${Y(i)+6}" text-anchor="middle" style="font-size:16px;fill:var(--ink)">${i}</text>`}
+  s+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(5)+8}" y2="${Y(0)}" style="stroke:var(--ink);stroke-width:3"/><line x1="${X(0)}" y1="${Y(0)}" x2="${X(0)}" y2="${Y(5)-8}" style="stroke:var(--ink);stroke-width:3"/><text x="${X(5)+6}" y="${Y(0)-8}" style="font-size:13px;fill:var(--ink)">x</text><text x="${X(0)+8}" y="${Y(5)-4}" style="font-size:13px;fill:var(--ink)">y</text>`;
+  return s+`<text x="${X(x)}" y="${Y(y)+9}" text-anchor="middle" style="font-size:26px">${e}</text></svg>`}
+function numLine(a,b){const X=v=>20+v*30;let s=`<svg class="ill" viewBox="0 0 340 92" role="img" aria-label="number line"><line x1="8" y1="60" x2="332" y2="60" style="stroke:var(--ink);stroke-width:3"/>`;
+  for(let v=0;v<=10;v++)s+=`<line x1="${X(v)}" y1="52" x2="${X(v)}" y2="68" style="stroke:var(--ink);stroke-width:3"/><text x="${X(v)}" y="87" text-anchor="middle" style="font-size:15px;fill:var(--ink)">${v}</text>`;
+  return s+`<text x="${X(a)}" y="42" text-anchor="middle" style="font-size:28px">🐸</text><text x="${X(b)}" y="42" text-anchor="middle" style="font-size:28px">🏁</text></svg>`}
+
+add(1,3,()=>{const a=r(0,6),b=r(a+1,Math.min(10,a+5));return N(tr('How many hops does 🐸 need to reach 🏁?','Ile skoków musi zrobić 🐸, żeby dojść do 🏁?','¿Cuántos saltos necesita 🐸 para llegar a 🏁?'),numLine(a,b),b-a,{min:1})});
+add(3,5,l=>{const n=r(l===3?3:6,l===3?10:23);return N(tr('Count the tally marks. Each crossed bundle is 5.','Policz kreski. Każdy przekreślony pęczek to 5.','Cuenta las rayas. Cada grupo tachado vale 5.'),tally(n),n,{min:1,trap:n+1})});
+add(3,5,l=>{const T0=l===5?20:10,a=r(1,T0-1),b=T0-a,p=(x,y)=>`${x} + ${y}`;
+  return T(tr(`Which pair makes ${T0}?`,`Która para daje razem ${T0}?`,`¿Qué pareja suma ${T0}?`),`<span>🎯 ${T0}</span>`,p(a,b),[p(a,b+1),p(a+1,b+1),p(a,b+2),p(a+2,b+1)],'',l===3?3:4)});
+add(5,7,l=>{const h=r(1,12),m=l===5?pick([0,30]):l===6?pick([0,15,30,45]):5*r(0,11);
+  const W=[[h,(m+30)%60],[h%12+1,m],[m/5||12,(h*5)%60],[(h+5)%12+1,m],[h,(m+15)%60]];
+  return T(tr(`Which clock shows ${tm(h,m)}?`,`Który zegar pokazuje ${tm(h,m)}?`,`¿Qué reloj marca las ${tm(h,m)}?`),'',clockSm(h,m),W.map(([a,b])=>clockSm(a,b)),'pic clk')});
+add(6,8,()=>{const n=r(1,6);return T(tr('On a die, opposite sides always add up to 7. How many dots are on the bottom?','Na kostce przeciwległe ścianki zawsze dają razem 7. Ile oczek jest na spodzie?','En un dado, las caras opuestas siempre suman 7. ¿Cuántos puntos hay abajo?'),die(n),7-n,picks([1,2,3,4,5,6].filter(x=>x!==7-n),3))});
+add(6,8,l=>{const st=l===8?2:5,t=st*r(1,40/st);return N(tr('🌡️ What temperature does it show? (°C)','🌡️ Jaką temperaturę pokazuje termometr? (°C)','🌡️ ¿Qué temperatura marca? (°C)'),thermo(t,st),t,{trap:t+st})});
+add(7,9,()=>{const h=r(13,23),m=pick([0,15,30,45]);return T(tr(`It is ${tm(h,m)}. What does a clock with hands show?`,`Jest ${tm(h,m)}. Co pokazuje zegar ze wskazówkami?`,`Son las ${tm(h,m)}. ¿Qué marca un reloj de agujas?`),`<span>⏰ ${tm(h,m)}</span>`,tm(h-12,m),[tm((h-11)%12+1,m),tm(h-11,m),tm(h-13||12,m),tm(h-12,(m+30)%60)])});
+add(7,9,()=>{const nm=tr(['Mia','Leo','Sam'],['Ola','Kuba','Zosia'],['Lucía','Hugo','Sara']),v=[r(1,10),r(1,10),r(1,10)],e=pick(['🍎','⭐','⚽','📚','🐚']),t=r(0,2);
+  const M=(x=>x+x%2)(Math.max(10,...v)+0);
+  if(t===0){const[i,j]=picks([0,1,2],2);if(v[i]===v[j])v[i]=Math.min(12,v[j]+r(1,2));const hi=v[i]>v[j]?i:j,lo=hi===i?j:i,MM=(x=>x+x%2)(Math.max(10,...v));
+    return N(tr(`How many more ${e} does ${nm[hi]} have than ${nm[lo]}?`,`Ile ${e} więcej ma ${nm[hi]} niż ${nm[lo]}?`,`¿Cuántos ${e} más tiene ${nm[hi]} que ${nm[lo]}?`),bars(nm,v,MM),v[hi]-v[lo],{min:1,trap:v[hi]+v[lo]})}
+  if(t===1)return N(tr(`How many ${e} do they have altogether?`,`Ile ${e} mają wszyscy razem?`,`¿Cuántos ${e} tienen entre todos?`),bars(nm,v,M),v[0]+v[1]+v[2]);
+  const i=r(0,2);return N(tr(`How many ${e} does ${nm[i]} have?`,`Ile ${e} ma ${nm[i]}?`,`¿Cuántos ${e} tiene ${nm[i]}?`),bars(nm,v,M),v[i],{min:1})});
+add(7,9,()=>{const m=r(3,9),w=picks([2,3,4,5,6,7,8,9,10],3).map(k=>m*k),x=m*r(2,9)+r(1,m-1);
+  return T(tr(`Which number is NOT in the ${m} times table?`,`Która liczba NIE jest w tabliczce mnożenia przez ${m}?`,`¿Qué número NO está en la tabla del ${m}?`),`<span>✖️ ${m}</span>`,x,w)});
+add(8,10,()=>{const x=r(1,5),y=r(1,5),e=pick(['⭐','💎','🍄','🐸','🎁']),p=(a,b)=>`(${a},\u00a0${b})`;
+  return T(tr(`Where is the ${e}? Give (x, y)`,`Gdzie jest ${e}? Podaj (x, y)`,`¿Dónde está ${e}? Da (x, y)`),gridPic(x,y,e),p(x,y),[p(y,x),p(x,y===5?4:y+1),p(x===1?2:x-1,y),p(x===5?4:x+1,y===1?2:y-1)],'txt')});
+add(9,10,()=>{let x;do{x=r(101,999)}while(x%10===5||x%100===0);const a=Math.round(x/10)/10,v=x/100,f=Math.floor(x/10)/10;
+  return T(tr('Round to one decimal place','Zaokrąglij do części dziesiątych','Redondea a las décimas'),`<span>${dec(v)} ≈ ?</span>`,dec(a),[dec(f===a?a+0.1:f),dec(Math.round(v)),dec(a+1),dec(a-0.1)])});
+add(10,11,()=>{const s=pick([2,5,10,20,50]),d=r(2,12);return N(tr(`🗺️ On the map 1 cm = ${s} km. Two towns are ${d} cm apart. How many km is that really?`,`🗺️ Na mapie 1 cm to ${s} km. Dwa miasta dzieli ${d} cm. Ile to kilometrów naprawdę?`,`🗺️ En el mapa 1 cm = ${s} km. Dos pueblos están a ${d} cm. ¿Cuántos km son en realidad?`),'<span>📍┈┈┈┈📍</span>',d*s,{trap:d+s})});
+add(11,11,()=>{const k=pick([5,10,15,20,25,30]);return N(tr('Convert the speed','Zamień prędkość','Convierte la velocidad'),`<span>${k*36/10} km/h = ? m/s</span>`,k)});
+add(11,12,()=>{const b=r(2,8),a=b+r(2,10),c=b+r(2,10),n=a+c-b+r(1,8),t=r(0,1);
+  const txt=tr(`A class has ${n} kids: ${a} like ⚽, ${c} like 🎨 and ${b} like both.`,`W klasie jest ${n} dzieci: ${a} lubi ⚽, ${c} lubi 🎨, a ${b} lubi jedno i drugie.`,`En una clase hay ${n} niños: a ${a} les gusta el ⚽, a ${c} el 🎨 y a ${b} las dos cosas.`);
+  return t?N(txt+' '+tr('How many like at least one?','Ile dzieci lubi co najmniej jedno?','¿A cuántos les gusta al menos una?'),'<span>⚽ ∪ 🎨</span>',a+c-b,{trap:a+c}):
+    N(txt+' '+tr('How many like neither?','Ile dzieci nie lubi żadnego?','¿A cuántos no les gusta ninguna?'),'<span>⚽ ∪ 🎨</span>',n-(a+c-b),{trap:n-(a+c-b)+b})});
+add(12,13,()=>{const n=r(5,12);return N(tr(`How many diagonals does a polygon with ${n} sides have?`,`Ile przekątnych ma wielokąt o ${n} bokach?`,`¿Cuántas diagonales tiene un polígono de ${n} lados?`),polyPic(n),n*(n-3)/2,{trap:n*(n-1)/2})});
+add(13,13,()=>T(tr('Euler’s identity','Tożsamość Eulera','Identidad de Euler'),'<span>e<sup>iπ</sup> + 1 = ?</span>','0',['1','−1','2','i','π','e']));
+add(13,13,()=>{const k=r(2,9);return T(tr('Derivative','Pochodna','Derivada'),`<span class="sm">f(x) = ln x, &nbsp;f′(${k}) = ?</span>`,fr(1,k),[String(k),fr(1,k*k),'ln '+k,fr(1,k+1),'e<sup>'+k+'</sup>'])});
+
 const LEVELS=()=>({
  0:tr('👀 Pictures only: count to 5, spot the different one, shapes, what is bigger','👀 Same obrazki: licz do 5, znajdź inny, kształty, co jest większe','👀 Solo dibujos: contar hasta 5, el diferente, figuras, qué es más grande'),
  1:tr('🍎 Count to 10, fingers, patterns, dice, add up to 5','🍎 Liczenie do 10, palce, wzory, kostki, dodawanie do 5','🍎 Contar hasta 10, dedos, series, dados, sumar hasta 5'),
@@ -579,15 +704,126 @@ const LEVELS=()=>({
  13:tr('🚀 Academic: integrals, limits, matrices, complex numbers, number bases','🚀 Poziom akademicki: całki, granice, macierze, liczby zespolone, systemy liczbowe','🚀 Universidad: integrales, límites, matrices, complejos, bases numéricas')});
 const lvlLabel=l=>l===ADULT?tr('Adult','Dorosły','Adulto'):l===PRO?tr('Adult Pro','Dorosły Pro','Adulto Pro'):l===ULTRA?'Ultra Pro':String(l);
 
-/* ---------- flash screen content ---------- */
-const JOKES=[
+/* ---------- flash screen content (v1.1) ---------- */
+const PUNS=[
+ {pl:['Jak nazywa się kot, który umie wszystko policzyć?','Kotkulator!']},
+ {pl:['Co mówi ogórek zamknięty w słoiku?','Ale się tu kiszę!']},
+ {pl:['Jaki kot mieszka na talerzu?','Kotlet!']},
+ {pl:['Jak nazywa się pies, który umie czarować?','Labra-kadabra-dor!']},
+ {pl:['Jak ser mówi „dziękuję”?','Z całego serca!']},
+ {pl:['Która ryba jest najlepszym detektywem?','Śledź – bo wszystkich śledzi!']},
+ {pl:['Dlaczego zegar poszedł do lekarza?','Bo miał słabe wskazówki!']},
+ {pl:['Dlaczego kalendarz jest smutny?','Bo jego dni są policzone!']},
+ {pl:['Dlaczego rybak nie kupuje internetu?','Bo ma już swoją sieć!']},
+ {pl:['Dlaczego komputer poszedł do lekarza?','Bo złapał wirusa!']},
+ {pl:['Której myszy kot nigdy nie złapie?','Myszki komputerowej!']},
+ {pl:['Jaki klucz nie otwiera żadnych drzwi?','Klucz wiolinowy!']},
+ {pl:['Jaki pilot nigdy nie lata samolotem?','Pilot do telewizora!']},
+ {pl:['Jaki koń nigdy nie je owsa?','Koń na biegunach!']},
+ {pl:['Jaki paw ma futro zamiast piór?','Pawian!']},
+ {pl:['Jaki lis przychodzi do nas pocztą?','List!']},
+ {pl:['Jaka mucha nigdy nie lata?','Mucha pod szyją – do eleganckiej koszuli!']},
+ {pl:['Jaka krowa nie daje mleka, a i tak jest słodka?','Krówka!']},
+ {pl:['Jaki kurek nie ma piór i nigdy nie pieje?','Kurek od kranu!']},
+ {pl:['Jaki kret nigdy nie ryje w ziemi?','Sekret!']},
+ {pl:['Jaki kos jest największy na świecie?','Kosmos!']},
+ {pl:['Jaki rak lata wyżej niż samolot?','Rakieta!']},
+ {pl:['Jaka osa pojawia się rano na trawie?','Rosa!']},
+ {pl:['Dlaczego drzewa boją się komputerów?','Bo tam ciągle ktoś klika „wytnij”!']},
+ {pl:['Jaka kaczka nigdy nie pływa?','Kaczka dziennikarska!']},
+ {pl:['Jaki bal odbywa się wysoko w powietrzu?','Balon!']},
+ {pl:['Jaki mól nie zjada ubrań, tylko czyta?','Mól książkowy!']},
+ {pl:['Jaki smok nie zieje ogniem, a maluchy go uwielbiają?','Smoczek!']},
+ {pl:['Jaki kran nigdy nie ma wody?','Ekran!']},
+ {pl:['Jaki port nie ma statków, a zabierasz go na wakacje?','Paszport!']},
+ {pl:['Jaki las jest w każdej szkole?','Klasa!']},
+ {pl:['Co zrobić, gdy lew połknie twoją linijkę?','Zmierzyć się z nim!']},
+ {tw:1,pl:['„Czy tata czyta cytaty Tacyta?”','Udało się bez pomyłki? Brawo! 👏']},
+ {tw:1,pl:['„Trzy pstre przepiórki przefrunęły przez trzy pstre kamienie”','Udało się bez pomyłki? Mistrz! 🏆']},
+ {tw:1,pl:['„Czarna krowa w kropki bordo gryzła trawę, kręcąc mordą”','Udało się bez pomyłki? Brawo! 👏']},
+ {tw:1,pl:['„Ząb zupa zębowa, dąb zupa dębowa”','Udało się bez pomyłki? Super! 👏']},
  {en:['Why was the math book sad?','It had too many problems.'],pl:['Dlaczego książka do matematyki jest smutna?','Bo ma za dużo problemów.'],es:['¿Por qué está triste el libro de matemáticas?','Porque tiene demasiados problemas.']},
  {en:['What did 0 say to 8?','Nice belt!'],pl:['Co powiedziało zero do ósemki?','Fajny pasek!'],es:['¿Qué le dijo el 0 al 8?','¡Bonito cinturón!']},
  {en:['Why is a calculator a great friend?','You can always count on it.'],pl:['Dlaczego kalkulator to dobry przyjaciel?','Bo zawsze możesz na nim liczyć.'],es:['¿Por qué la calculadora es una gran amiga?','Porque siempre puedes contar con ella.']},
  {en:['Why don’t fish play tennis?','They’re scared of the net.'],pl:['Dlaczego ryby nie grają w tenisa?','Bo boją się siatki.'],es:['¿Por qué los peces no juegan al tenis?','Porque le tienen miedo a la red.']},
  {en:['What did one wall say to the other wall?','I’ll meet you at the corner!'],pl:['Co powiedziała jedna ściana do drugiej?','Spotkajmy się na rogu!'],es:['¿Qué le dijo una pared a otra pared?','¡Nos vemos en la esquina!']},
+ {en:['Why is a circle so clever?','It has 360 degrees!'],es:['¿Por qué el círculo es tan listo?','¡Porque tiene 360 grados!']},
+ {en:['Why was 6 afraid of 7?','Because 7 8 9!']},
+ {en:['What kind of tree does a math teacher climb?','Geometry!']},
+ {en:['Why did the king go to the dentist?','To get his teeth crowned!']},
+ {en:['Why are obtuse angles always grumpy?','Because they’re never right.']},
+ {en:['What do you call a sleeping bull?','A bulldozer!']},
+ {en:['Why did the bicycle fall over?','It was two-tired!']},
+ {pl:['Jak nazywa się kot, który kocha matematykę?','Kotangens!']},
+ {pl:['Co robi traktor u fryzjera?','Warkocze!']},
+ {pl:['Jak nazywa się kot na statku?','Kotwica!']},
+ {pl:['Kto nigdy nie opuszcza zebrania?','Zebra!']},
+ {pl:['Gdzie ser trzyma swoje zdjęcia?','Na serwerze!']},
+ {pl:['Jaki taniec najbardziej lubią krowy?','Muuuzurka!']},
+ {pl:['Co ma rycerz w swojej kurtce?','Zamek!']},
+ {pl:['Dlaczego król zawsze nosi przy sobie klucze?','Bo mieszka w zamku!']},
+ {pl:['Dlaczego koło nigdy nie chowa się w kącie?','Bo nie ma ani jednego kąta!']},
+ {pl:['Jaki jest ulubiony owoc matematyka?','Pi-gwa!']},
+ {pl:['Gdzie ryby chodzą do szkoły?','Do ławicy – tam każda ma swoją ławkę!']},
+ {pl:['Na czym gra owca?','Na beee-bnie!']},
+ {pl:['Co mówi krowa, kiedy się pomyli?','Muuusiałam się pomylić!']},
+ {pl:['Przeczytaj od tyłu: „kajak”.','Wychodzi to samo! Takie słowo to palindrom.']},
+ {pl:['Przeczytaj od tyłu: „Kobyła ma mały bok”.','Wychodzi to samo zdanie! To słynny palindrom.']},
+ {pl:['Przeczytaj od tyłu: „Ile Romanowi dała za ład Iwona? Moreli!”','Znowu to samo! Polskie palindromy są niesamowite.']},
+ {en:['What did the electrician do in the theatre?','Built up the tension!'],pl:['Co robi elektryk w teatrze?','Buduje napięcie!'],es:['¿Qué hace un electricista en el teatro?','¡Crear tensión!']},
+ {en:['Why don’t eggs tell jokes?','They’d crack up!'],pl:['Dlaczego jajko nie opowiada kawałów?','Bo mogłoby pęknąć ze śmiechu!'],es:['¿Por qué los huevos no cuentan chistes?','¡Porque se partirían de risa!']},
+ {en:['What do you call a dinosaur that reads dictionaries?','A thesaurus!'],pl:['Jak nazywa się dinozaur, który czyta słowniki?','Tezaurus!'],es:['¿Cómo se llama el dinosaurio que lee diccionarios?','¡El tesaurio!']},
+ {en:['What do you call a sleeping dinosaur?','A dino-snore!'],pl:['Jak nazywa się dinozaur, który głośno chrapie?','Dinochrapus!'],es:['¿Cómo se llama un dinosaurio que ronca?','¡El dinorronquido!']},
+ {en:['What do you call a bear with no teeth?','A gummy bear!'],pl:['Jak nazywa się miś bez zębów?','Gumiś!'],es:['¿Cómo se llama un oso sin dientes?','¡Un osito de gominola!']},
+ {en:['What kind of dog can’t bark?','A hot dog!'],pl:['Jaki pies nie umie szczekać?','Hot dog!'],es:['¿Qué perro no sabe ladrar?','¡El perrito caliente!']},
+ {en:['What did one magnet say to the other?','I find you very attractive!'],pl:['Co powiedział jeden magnes do drugiego?','Coś mnie do ciebie przyciąga!'],es:['¿Qué le dijo un imán a otro?','¡Me atraes muchísimo!']},
+ {en:['What is a pirate’s favourite letter?','Arrrrr!'],pl:['Jaką literę najbardziej lubi pirat?','Rrrrrr!'],es:['¿Cuál es la letra favorita de un pirata?','¡La Rrrrrr!']},
+ {en:['What did one onion say to the other?','Don’t cry!'],pl:['Co mówi cebula do cebuli?','Nie płacz!'],es:['¿Qué le dijo una cebolla a otra?','¡No llores!']},
+ {en:['Where does a spider look things up?','On the web!'],pl:['Gdzie pająk szuka informacji?','W sieci!'],es:['¿Dónde busca información una araña?','¡En la red!']},
+ {en:['Read it backwards: “racecar”.','It’s the same! Words like that are palindromes.']},
+ {en:['Read it backwards: “Was it a car or a cat I saw?”','Same sentence! It’s a palindrome.']},
+ {es:['Lee al revés: «Anita lava la tina».','¡Sale lo mismo! Es un palíndromo.']},
+ {es:['¿Qué le dijo un techo a otro techo?','Techo de menos.']},
+ {es:['¿Cuál es el café más peligroso del mundo?','¡El ex-preso!']},
+ {es:['¿Qué le dice un jardinero a otro?','Disfrutemos mientras podamos.']},
+ {es:['¿Cómo se despiden los químicos?','Ácido un placer.']},
+ {es:['¿Qué le dijo el 1 al 10?','Para ser como yo, tienes que ser sincero.']},
+ {es:['¿Qué hace una abeja en el gimnasio?','¡Zum-ba!']},
+ {es:['¿Qué le dice una iguana a su hermana gemela?','¡Somos iguanitas!']},
+ {es:['¿Cuál es el colmo de un matemático?','Tener muchos problemas.']},
+ {es:['¿Qué le dijo un pez a otro pez?','Nada.']},
+ {en:['What do you call a fake noodle?','An impasta!']},
+ {en:['Why did the cookie go to the doctor?','It felt crummy!']},
+ {en:['What do you call a cow with no legs?','Ground beef!']},
+ {en:['Why can’t you trust an atom?','They make up everything!']},
+ {en:['What’s a tree’s favourite drink?','Root beer!']},
+ {es:['¿Qué le dijo una uva verde a una morada?','¡Respira, respira!']},
+ {es:['¿Qué hace un perro con un taladro?','¡Taladrando!']},
+ {es:['¿Por qué el libro de matemáticas se fue al psicólogo?','Porque no sabía resolver sus problemas.']},
+ {tw:1,pl:['„Stół z powyłamywanymi nogami”','Udało się bez pomyłki? Brawo! 👏']},
+ {tw:1,pl:['„Król Karol kupił królowej Karolinie korale koloru koralowego”','Udało się bez pomyłki? Brawo! 👏']},
+ {tw:1,pl:['„Szedł Sasza suchą szosą”','Udało się bez pomyłki? Brawo! 👏']},
+ {tw:1,pl:['„W Szczebrzeszynie chrząszcz brzmi w trzcinie”','Udało się bez pomyłki? Mistrz! 🏆']},
+ {tw:1,en:['“She sells seashells by the seashore”','Did you do it without a slip? Well done! 👏']},
+ {tw:1,en:['“Red lorry, yellow lorry”','Did you do it without a slip? Well done! 👏']},
+ {tw:1,es:['«Tres tristes tigres tragaban trigo en un trigal»','¿Sin equivocarte? ¡Bravo! 👏']},
+ {tw:1,es:['«Pablito clavó un clavito, ¿qué clavito clavó Pablito?»','¿Sin equivocarte? ¡Bravo! 👏']}
+];
+const SILLY=[
+ {pl:['Po czym poznać, że słoń był w lodówce?','Po śladach w maśle!']},
+ {pl:['Dlaczego bocian stoi na jednej nodze?','Bo gdyby podniósł drugą, to by się przewrócił!']},
+ {pl:['Co jest żółte i nie umie pływać?','Koparka!']},
+ {pl:['Co jest czarno-białe i czerwone?','Zawstydzona zebra!']},
+ {pl:['Ile nóg ma mucha, kiedy siedzi?','Tyle samo, co kiedy stoi – sześć!']},
+ {pl:['Co mówi jeż do kaktusa?','Cześć, mamo!']},
+ {pl:['Czy kangur skacze wyżej niż dom?','Pewnie! Domy w ogóle nie skaczą!']},
+ {pl:['Jak złapać wiewiórkę?','Wejść na drzewo i udawać orzecha!']},
+ {pl:['Ile jajek zje głodny olbrzym na pusty żołądek?','Tylko jedno – potem żołądek już nie jest pusty!']},
+ {pl:['Dlaczego ptaki odlatują zimą na południe?','Bo piechotą byłoby za daleko!']},
+ {pl:['Kiedy kaczka zaczyna pływać?','Kiedy nie sięga nogami dna!']},
+ {pl:['Co robi rybka, kiedy jest jej smutno?','Płacze, ale nikt nie widzi – bo jest w wodzie!']},
  {en:['Why do giraffes have long necks?','Because their feet smell!'],pl:['Dlaczego żyrafa ma długą szyję?','Bo śmierdzą jej nogi!'],es:['¿Por qué las jirafas tienen el cuello tan largo?','¡Porque les huelen los pies!']},
- {en:['What did the snail say riding on the turtle’s back?','Wheeeee!'],pl:['Co krzyczy ślimak jadący na żółwiu?','Juhuuuu!'],es:['¿Qué grita un caracol montado en una tortuga?','¡Yujuuuu!']},
+ {en:['What does a snail riding a turtle shout?','Wheeeee!'],pl:['Co krzyczy ślimak jadący na żółwiu?','Juhuuuu!'],es:['¿Qué grita un caracol montado en una tortuga?','¡Yujuuuu!']},
  {en:['What has hands but can’t clap?','A clock.'],pl:['Co ma wskazówki, ale nigdy nikogo nie prowadzi?','Zegar.'],es:['¿Qué tiene agujas pero no pincha?','El reloj.']},
  {en:['What has four legs but can’t walk?','A table.'],pl:['Co ma cztery nogi, a nie chodzi?','Stół.'],es:['¿Qué tiene cuatro patas y no camina?','La mesa.']},
  {en:['What gets wetter the more it dries?','A towel.'],pl:['Co robi się coraz bardziej mokre, im więcej suszy?','Ręcznik.'],es:['¿Qué se moja mientras más seca?','La toalla.']},
@@ -596,26 +832,46 @@ const JOKES=[
  {en:['How many months have 28 days?','All of them!'],pl:['Ile miesięcy ma 28 dni?','Wszystkie!'],es:['¿Cuántos meses tienen 28 días?','¡Todos!']},
  {en:['A farmer has 17 sheep. All but 9 run away. How many are left?','9!'],pl:['Rolnik ma 17 owiec. Wszystkie oprócz 9 uciekły. Ile zostało?','9!'],es:['Un granjero tiene 17 ovejas. Se escapan todas menos 9. ¿Cuántas quedan?','¡9!']},
  {en:['Which is heavier: a kilo of feathers or a kilo of bricks?','Neither. They both weigh one kilo!'],pl:['Co jest cięższe: kilogram pierza czy kilogram cegieł?','Nic. Oba ważą kilogram!'],es:['¿Qué pesa más: un kilo de plumas o un kilo de ladrillos?','¡Lo mismo! Los dos pesan un kilo.']},
- {en:['There are 3 apples and you take 2. How many do you have?','2, the ones you took!'],pl:['Są 3 jabłka, a ty bierzesz 2. Ile masz jabłek?','2, te, które wziąłeś!'],es:['Hay 3 manzanas y coges 2. ¿Cuántas tienes?','¡2, las que cogiste!']},
+ {en:['There are 3 apples and you take 2. How many do you have?','2, the ones you took!'],pl:['Są 3 jabłka, a ty bierzesz 2. Ile masz jabłek?','2 – te, które wziąłeś!'],es:['Hay 3 manzanas y coges 2. ¿Cuántas tienes?','¡2, las que cogiste!']},
  {en:['Multiply all the digits on a phone keypad. What do you get?','Zero! (There’s a 0 on it.)'],pl:['Pomnóż wszystkie cyfry z klawiatury telefonu. Ile wyjdzie?','Zero! (Jest tam 0.)'],es:['Multiplica todas las cifras del teclado de un teléfono. ¿Qué sale?','¡Cero! (Hay un 0.)']},
  {en:['What has a neck but no head?','A bottle.'],pl:['Co ma szyjkę, a nie ma głowy?','Butelka.'],es:['¿Qué tiene cuello y no tiene cabeza?','La botella.']},
  {en:['What has an eye but can’t see?','A needle.'],pl:['Co ma ucho, ale nic nie słyszy?','Igła.'],es:['¿Qué tiene ojo y no ve?','La aguja.']},
  {en:['What has teeth but can’t bite?','A comb.'],pl:['Co ma zęby, ale nie gryzie?','Grzebień.'],es:['¿Qué tiene dientes y no muerde?','El peine.']},
- {en:['Why is a circle so clever?','It has 360 degrees!'],es:['¿Por qué el círculo es tan listo?','¡Porque tiene 360 grados!']},
- {en:['Why was 6 afraid of 7?','Because 7 8 9!']},
- {en:['What kind of tree does a math teacher climb?','Geometry!']},
- {en:['Why did the king go to the dentist?','To get his teeth crowned!']},
- {en:['Why are obtuse angles always grumpy?','Because they’re never right.']},
- {pl:['Jak nazywa się kot, który kocha matematykę?','Kotangens!']},
- {pl:['Co robi traktor u fryzjera?','Warkocze!']},
- {pl:['Jak nazywa się kot, który umie wszystko policzyć?','Kotkulator!']},
- {es:['¿Qué le dijo el 1 al 10?','Para ser como yo, tienes que ser sincero.']},
- {es:['¿Qué hace una abeja en el gimnasio?','¡Zum-ba!']},
- {es:['¿Qué le dice una iguana a su hermana gemela?','¡Somos iguanitas!']},
- {es:['¿Cuál es el colmo de un matemático?','Tener muchos problemas.']},
- {es:['¿Qué le dijo un pez a otro pez?','Nada.']}
+ {en:['When does an elephant have eight legs?','When there are two elephants!'],pl:['Kiedy słoń ma osiem nóg?','Kiedy są dwa słonie!'],es:['¿Cuándo tiene un elefante ocho patas?','¡Cuando son dos elefantes!']},
+ {en:['What’s white and can’t climb a tree?','A fridge!'],pl:['Co jest białe i nie umie wejść na drzewo?','Lodówka!'],es:['¿Qué es blanco y no puede subir a un árbol?','¡Una nevera!']},
+ {en:['What’s red and jumps?','A frog in ketchup!'],pl:['Co jest czerwone i skacze?','Żaba w keczupie!'],es:['¿Qué es rojo y salta?','¡Una rana con kétchup!']},
+ {en:['What does one cucumber say to another cucumber?','Nothing. Cucumbers can’t talk!'],pl:['Co mówi ogórek do ogórka?','Nic. Ogórki nie mówią!'],es:['¿Qué le dice un pepino a otro pepino?','Nada. ¡Los pepinos no hablan!']},
+ {en:['Why is a snail always at home?','Because it carries its house on its back!'],pl:['Dlaczego ślimak zawsze jest w domu?','Bo nosi go na plecach!'],es:['¿Por qué el caracol siempre está en casa?','¡Porque la lleva a cuestas!']},
+ {en:['What does a fly do on the ceiling?','Walks upside down!'],pl:['Co robi mucha na suficie?','Chodzi do góry nogami!'],es:['¿Qué hace una mosca en el techo?','¡Caminar boca abajo!']},
+ {en:['How do you fit an elephant in a fridge?','Open the door, put the elephant in, close the door!'],pl:['Jak zmieścić słonia w lodówce?','Otwierasz lodówkę, wkładasz słonia, zamykasz!'],es:['¿Cómo metes un elefante en una nevera?','¡Abres la puerta, metes el elefante y cierras!']},
+ {en:['What hangs in a tree and says “quack quack”?','A duck on a swing!'],pl:['Co wisi na drzewie i robi „kwa kwa”?','Kaczka na huśtawce!'],es:['¿Qué cuelga de un árbol y hace «cuac cuac»?','¡Un pato en un columpio!']},
+ {en:['Why does a rooster close its eyes when it crows?','It knows the song by heart!'],pl:['Dlaczego kogut zamyka oczy, kiedy pieje?','Bo zna tekst na pamięć!'],es:['¿Por qué el gallo cierra los ojos cuando canta?','¡Porque se sabe la canción de memoria!']},
+ {en:['What’s grey, huge and has a trunk?','An elephant. Not everything has to be funny!'],pl:['Co jest szare, wielkie i ma trąbę?','Słoń. Nie wszystko musi być śmieszne!'],es:['¿Qué es gris, enorme y tiene trompa?','Un elefante. ¡No todo tiene que ser gracioso!']},
+ {en:['Why don’t penguins fly on planes?','They can’t afford the tickets!'],pl:['Dlaczego pingwiny nie latają samolotami?','Bo nie stać ich na bilety!'],es:['¿Por qué los pingüinos no viajan en avión?','¡Porque no les alcanza para el billete!']},
+ {en:['What does a cold cow give?','Ice cream!'],pl:['Co daje krowa, gdy jest jej zimno?','Lody!'],es:['¿Qué da una vaca con frío?','¡Helado!']},
+ {en:['Why did dinosaurs have long tails?','So everyone knew where they ended!'],pl:['Po co dinozaury miały długie ogony?','Żeby było wiadomo, gdzie się kończą!'],es:['¿Para qué tenían cola larga los dinosaurios?','¡Para que se supiera dónde terminaban!']},
+ {en:['What is bigger than an elephant but weighs nothing?','Its shadow!'],pl:['Co jest większe od słonia, a nic nie waży?','Jego cień!'],es:['¿Qué es más grande que un elefante y no pesa nada?','¡Su sombra!']},
+ {en:['What can you never eat for breakfast?','Lunch and dinner!'],pl:['Czego nigdy nie zjesz na śniadanie?','Obiadu i kolacji!'],es:['¿Qué no puedes desayunar nunca?','¡La comida y la cena!']},
+ {en:['What is always in front of you but you can’t see it?','The future!'],pl:['Co jest zawsze przed tobą, ale tego nie widzisz?','Przyszłość!'],es:['¿Qué está siempre delante de ti pero no puedes verlo?','¡El futuro!']},
+ {en:['Why do elephants paint their toenails red?','To hide in strawberry fields. Ever seen an elephant there? Exactly!'],pl:['Dlaczego słonie malują paznokcie na czerwono?','Żeby schować się w truskawkach. Widziałeś kiedyś tam słonia? No właśnie!'],es:['¿Por qué los elefantes se pintan las uñas de rojo?','Para esconderse entre las fresas. ¿Has visto alguno ahí? ¡Pues eso!']},
+ {en:['Why doesn’t a fish talk?','Its mouth is full of water!'],pl:['Dlaczego ryba nic nie mówi?','Bo ma pełną buzię wody!'],es:['¿Por qué los peces no hablan?','¡Porque tienen la boca llena de agua!']},
+ {en:['Why is the owl awake all night?','It works the night shift!'],pl:['Dlaczego sowa nie śpi w nocy?','Bo pracuje na nocną zmianę!'],es:['¿Por qué el búho no duerme de noche?','¡Porque trabaja en el turno de noche!']},
+ {pl:['Co robi zając na dachu?','Szuka marchewki w kominie!']},
+ {pl:['Co mówi pingwin, gdy wchodzi do lodówki?','Nareszcie w domu!']}
 ];
 const FACTS=[
+ {en:'A cheetah can run at about 100 km/h. 🐆',pl:'Gepard potrafi biec z prędkością około 100 km/h. 🐆',es:'Un guepardo puede correr a unos 100 km/h. 🐆'},
+ {en:'A blue whale’s heart weighs about 180 kg – the biggest heart of any animal. 🐋',pl:'Serce płetwala błękitnego waży około 180 kg – to największe serce na świecie. 🐋',es:'El corazón de la ballena azul pesa unos 180 kg: es el más grande de todos los animales. 🐋'},
+ {en:'Wombats do cube-shaped poos! 🟫',pl:'Wombaty robią kupki w kształcie kostek! 🟫',es:'¡Los wombats hacen cacas con forma de cubo! 🟫'},
+ {en:'Flamingos are pink because of the food they eat. 🦩',pl:'Flamingi są różowe przez to, co jedzą. 🦩',es:'Los flamencos son rosas por lo que comen. 🦩'},
+ {en:'About 1.3 million Earths would fit inside the Sun. ☀️',pl:'W Słońcu zmieściłoby się około 1,3 miliona Ziem. ☀️',es:'Dentro del Sol cabrían unos 1,3 millones de Tierras. ☀️'},
+ {en:'Bees visit millions of flowers to make just 1 kg of honey. 🍯',pl:'Pszczoły odwiedzają miliony kwiatów, żeby zrobić zaledwie 1 kg miodu. 🍯',es:'Las abejas visitan millones de flores para hacer solo 1 kg de miel. 🍯'},
+ {en:'Fryderyk Chopin had his first piece of music published when he was just 7 years old. 🎹',pl:'Fryderyk Chopin miał 7 lat, gdy wydano jego pierwszy utwór. 🎹',es:'Fryderyk Chopin tenía solo 7 años cuando se publicó su primera obra. 🎹'},
+ {en:'Maria Skłodowska-Curie won two Nobel Prizes, in two different sciences: physics and chemistry. 🏅',pl:'Maria Skłodowska-Curie zdobyła dwie Nagrody Nobla w dwóch różnych naukach: fizyce i chemii. 🏅',es:'Maria Skłodowska-Curie ganó dos premios Nobel en dos ciencias distintas: física y química. 🏅'},
+ {en:'Butterflies taste with their feet. 🦋',pl:'Motyle czują smak nóżkami. 🦋',es:'Las mariposas saborean con las patas. 🦋'},
+ {en:'Ants can carry things many times heavier than themselves. 🐜',pl:'Mrówki potrafią nieść coś wiele razy cięższego od siebie. 🐜',es:'Las hormigas pueden cargar cosas muchas veces más pesadas que ellas. 🐜'},
+ {en:'Zero is an even number: it can be split into two equal halves (0 and 0).',pl:'Zero jest liczbą parzystą: da się je podzielić na dwie równe połowy (0 i 0).',es:'El cero es un número par: se puede partir en dos mitades iguales (0 y 0).'},
+ {en:'1 ÷ 7 = 0.142857 142857 142857… The same six digits repeat forever!',pl:'1 : 7 = 0,142857 142857 142857… Te same sześć cyfr powtarza się w nieskończoność!',es:'1 ÷ 7 = 0,142857 142857 142857… ¡Las mismas seis cifras se repiten para siempre!'},
  {en:'An octopus has three hearts. 🐙',pl:'Ośmiornica ma trzy serca. 🐙',es:'El pulpo tiene tres corazones. 🐙'},
  {en:'Bees build honeycombs from hexagons. That shape holds the most honey using the least wax. 🐝',pl:'Pszczoły budują plastry z sześciokątów. Ten kształt mieści najwięcej miodu przy najmniejszej ilości wosku. 🐝',es:'Las abejas construyen panales de hexágonos. Esa forma guarda más miel con menos cera. 🐝'},
  {en:'Shuffle a deck of 52 cards well, and that order has almost certainly never existed before. 🃏',pl:'Dobrze przetasuj talię 52 kart, a ta kolejność prawie na pewno nigdy wcześniej nie istniała. 🃏',es:'Si barajas bien 52 cartas, ese orden casi seguro nunca ha existido antes. 🃏'},
@@ -625,7 +881,7 @@ const FACTS=[
  {en:'Legend says young Gauss added up all numbers from 1 to 100 in seconds: 5050!',pl:'Legenda mówi, że mały Gauss w kilka sekund dodał liczby od 1 do 100: 5050!',es:'Cuenta la leyenda que el pequeño Gauss sumó los números del 1 al 100 en segundos: ¡5050!'},
  {en:'There are more possible chess games than atoms in the observable universe. ♟️',pl:'Możliwych partii szachów jest więcej niż atomów w obserwowalnym Wszechświecie. ♟️',es:'Hay más partidas de ajedrez posibles que átomos en el universo observable. ♟️'},
  {en:'The equals sign “=” was invented by Robert Recorde in 1557.',pl:'Znak równości „=” wymyślił Robert Recorde w 1557 roku.',es:'El signo igual «=» lo inventó Robert Recorde en 1557.'},
- {en:'The digits of π go on forever and never repeat in a pattern.',pl:'Cyfry liczby π ciągną się w nieskończoność i nigdy nie powtarzają się we wzór.',es:'Las cifras de π son infinitas y nunca se repiten en un patrón.'},
+ {en:'The digits of π go on forever and never settle into a repeating pattern.',pl:'Cyfry liczby π ciągną się w nieskończoność i nigdy nie układają się w powtarzający się wzór.',es:'Las cifras de π son infinitas y nunca forman un patrón que se repita.'},
  {en:'In a group of just 23 people, there’s a better than 50% chance two share a birthday. 🎂',pl:'W grupie tylko 23 osób szansa, że dwie mają urodziny tego samego dnia, jest większa niż 50%. 🎂',es:'En un grupo de solo 23 personas hay más de un 50% de probabilidad de que dos cumplan años el mismo día. 🎂'},
  {en:'A day on Venus is longer than a year on Venus. 🪐',pl:'Doba na Wenus trwa dłużej niż rok na Wenus. 🪐',es:'Un día en Venus dura más que un año en Venus. 🪐'},
  {en:'Kids have 20 milk teeth. Adults can have 32 teeth. 🦷',pl:'Dzieci mają 20 zębów mlecznych. Dorośli mogą mieć 32 zęby. 🦷',es:'Los niños tienen 20 dientes de leche. Los adultos pueden tener 32. 🦷'},
@@ -634,28 +890,53 @@ const FACTS=[
  {en:'The Moon moves about 3.8 cm away from Earth every year. 🌙',pl:'Księżyc oddala się od Ziemi o około 3,8 cm rocznie. 🌙',es:'La Luna se aleja de la Tierra unos 3,8 cm cada año. 🌙'},
  {en:'A googol is 1 followed by 100 zeros. A 9-year-old boy came up with the name!',pl:'Googol to jedynka i 100 zer. Nazwę wymyślił 9-letni chłopiec!',es:'Un gúgol es un 1 seguido de 100 ceros. ¡El nombre lo inventó un niño de 9 años!'},
  {en:'Zero was treated as a real number in India over 1,300 years ago.',pl:'Zero jako prawdziwą liczbę traktowano w Indiach już ponad 1300 lat temu.',es:'En la India ya trataban el cero como un número hace más de 1300 años.'},
+ {en:'Your heart beats about 100,000 times a day. ❤️',pl:'Twoje serce bije około 100 000 razy na dobę. ❤️',es:'Tu corazón late unas 100 000 veces al día. ❤️'},
+ {en:'Tooth enamel is the hardest material in the human body. 🦷',pl:'Szkliwo zębów to najtwardsza substancja w ludzkim ciele. 🦷',es:'El esmalte dental es la sustancia más dura del cuerpo humano. 🦷'},
+ {en:'Sharks grow new teeth all their lives and can use up thousands of them. 🦈',pl:'Rekinom przez całe życie rosną nowe zęby – mogą ich zużyć tysiące. 🦈',es:'A los tiburones les salen dientes nuevos toda la vida: pueden gastar miles. 🦈'},
+ {en:'A snail has thousands of tiny teeth on its tongue. 🐌',pl:'Ślimak ma na języku tysiące malutkich ząbków. 🐌',es:'Un caracol tiene miles de dientes diminutos en la lengua. 🐌'},
+ {en:'An elephant’s tusks are really giant teeth. 🐘',pl:'Ciosy słonia to tak naprawdę ogromne zęby. 🐘',es:'Los colmillos del elefante son en realidad dientes enormes. 🐘'},
+ {en:'The narwhal’s long “horn” is actually a tooth. 🐋',pl:'Długi „róg” narwala to tak naprawdę ząb. 🐋',es:'El largo «cuerno» del narval es en realidad un diente. 🐋'},
+ {en:'Polar bears have black skin under their white fur.',pl:'Niedźwiedź polarny ma pod białym futrem czarną skórę.',es:'Los osos polares tienen la piel negra bajo su pelo blanco.'},
+ {en:'Mount Everest is 8,849 m tall – like about 27 Eiffel Towers stacked up! 🏔️',pl:'Mount Everest ma 8849 m – to jak około 27 wież Eiffla jedna na drugiej! 🏔️',es:'El Everest mide 8849 m: ¡como unas 27 torres Eiffel una encima de otra! 🏔️'},
+ {en:'About 1,300 Earths would fit inside Jupiter. 🪐',pl:'W Jowiszu zmieściłoby się około 1300 Ziem. 🪐',es:'Dentro de Júpiter cabrían unas 1300 Tierras. 🪐'},
+ {en:'The Eiffel Tower can grow up to about 15 cm taller on hot summer days. 🗼',pl:'Wieża Eiffla w upalne dni może urosnąć nawet o około 15 cm. 🗼',es:'La torre Eiffel puede crecer hasta unos 15 cm en los días de calor. 🗼'},
+ {en:'Hummingbirds can fly backwards. 🐦',pl:'Kolibry potrafią latać do tyłu. 🐦',es:'Los colibríes pueden volar hacia atrás. 🐦'},
+ {en:'Koalas can sleep up to 20 hours a day. 🐨',pl:'Koale potrafią spać nawet 20 godzin na dobę. 🐨',es:'Los koalas pueden dormir hasta 20 horas al día. 🐨'},
+ {en:'You can’t see the Great Wall of China from the Moon with your eyes alone.',pl:'Wielkiego Muru Chińskiego nie da się zobaczyć gołym okiem z Księżyca.',es:'La Gran Muralla China no se ve a simple vista desde la Luna.'},
+ {en:'Starfish have no brain at all. ⭐',pl:'Rozgwiazdy w ogóle nie mają mózgu. ⭐',es:'Las estrellas de mar no tienen cerebro. ⭐'},
+ {en:'Honeybees tell each other where flowers are with a “waggle dance”. 🐝',pl:'Pszczoły pokazują sobie, gdzie są kwiaty, specjalnym tańcem. 🐝',es:'Las abejas se indican dónde hay flores con un baile especial. 🐝'},
+ {en:'Adults have 206 bones. Babies are born with about 300 that later join together. 🦴',pl:'Dorosły człowiek ma 206 kości. Niemowlę ma ich około 300 – część później się zrasta. 🦴',es:'Un adulto tiene 206 huesos. Los bebés nacen con unos 300 que luego se unen. 🦴'},
+ {en:'In Poland’s Wieliczka Salt Mine there is a whole chapel carved out of salt – even the chandeliers! 🧂',pl:'W Kopalni Soli „Wieliczka” jest cała kaplica wyrzeźbiona w soli – nawet żyrandole! 🧂',es:'En la mina de sal de Wieliczka (Polonia) hay una capilla entera tallada en sal, ¡hasta las lámparas! 🧂'},
+ {en:'Nicolaus Copernicus, born in Toruń, explained that the Earth goes around the Sun. 🌍☀️',pl:'Mikołaj Kopernik, urodzony w Toruniu, wyjaśnił, że to Ziemia krąży wokół Słońca. 🌍☀️',es:'Nicolás Copérnico, nacido en Toruń, explicó que la Tierra gira alrededor del Sol. 🌍☀️'},
+ {en:'European bison, the heaviest land animals in Europe, live in Poland’s Białowieża Forest. 🦬',pl:'Żubry, najcięższe lądowe zwierzęta Europy, żyją w Puszczy Białowieskiej. 🦬',es:'Los bisontes europeos, los animales terrestres más pesados de Europa, viven en el bosque de Białowieża (Polonia). 🦬'},
+ {en:'Snowflakes almost always have six arms. ❄️',pl:'Płatki śniegu prawie zawsze mają sześć ramion. ❄️',es:'Los copos de nieve casi siempre tienen seis brazos. ❄️'},
+ {en:'In theory, a sheet of paper folded 42 times would be thick enough to reach the Moon! 📄🌙',pl:'Teoretycznie kartka papieru złożona 42 razy byłaby tak gruba, że sięgnęłaby Księżyca! 📄🌙',es:'En teoría, una hoja de papel doblada 42 veces sería tan gruesa que llegaría a la Luna. 📄🌙'},
+ {en:'Every whole number can be written as a sum of four square numbers. Example: 7 = 4 + 1 + 1 + 1.',pl:'Każdą liczbę naturalną da się zapisać jako sumę czterech kwadratów. Na przykład 7 = 4 + 1 + 1 + 1.',es:'Todo número natural se puede escribir como suma de cuatro cuadrados. Ejemplo: 7 = 4 + 1 + 1 + 1.'},
+ {en:'Only three regular shapes can cover a floor with no gaps: triangles, squares and hexagons.',pl:'Tylko trzy foremne kształty pokryją podłogę bez szpar: trójkąty, kwadraty i sześciokąty.',es:'Solo tres figuras regulares cubren un suelo sin huecos: triángulos, cuadrados y hexágonos.'},
+ {en:'Leap years add 29 February because a year is about 365¼ days long. 📅',pl:'Rok przestępny ma 29 lutego, bo rok trwa około 365¼ dnia. 📅',es:'Los años bisiestos tienen 29 de febrero porque un año dura unos 365¼ días. 📅'},
  {q:1,en:['“Do not worry about your difficulties in mathematics. I can assure you mine are still greater.”','Albert Einstein'],pl:['„Nie martw się swoimi trudnościami z matematyką. Zapewniam, że moje są jeszcze większe.”','Albert Einstein'],es:['«No te preocupes por tus dificultades con las matemáticas. Te aseguro que las mías son aún mayores.»','Albert Einstein']},
  {q:1,en:['“Nothing in life is to be feared, it is only to be understood.”','Maria Skłodowska-Curie'],pl:['„Niczego w życiu nie należy się bać, należy to tylko zrozumieć.”','Maria Skłodowska-Curie'],es:['«Nada en la vida debe ser temido, solo comprendido.»','Maria Skłodowska-Curie']},
  {q:1,en:['“The beauty of mathematics only shows itself to more patient followers.”','Maryam Mirzakhani'],pl:['„Piękno matematyki ukazuje się tylko cierpliwym.”','Maryam Mirzakhani'],es:['«La belleza de las matemáticas solo se muestra a los seguidores más pacientes.»','Maryam Mirzakhani']}
 ];
+const FUN={pun:PUNS,silly:SILLY,fact:FACTS};
 
 /* ---------- UI text ---------- */
 const UI={
  en:{title:'Math Tower',sub:'Pick the right answer to place a block. Lucky questions give 2 blocks. Reach 12 to win!',pl:n=>n===1?'1 player':`${n} players`,name:i=>`Player ${i} name`,def:i=>`Player ${i}`,diff:'Difficulty',start:'Start game',back:'← Menu',
   turn:n=>`${n}’s turn`,solo:n=>`${n}: build your tower!`,lucky:'✨ Lucky question: worth 2 blocks!',good:['Correct! Block placed 🧱','Nice! Up you go ⬆️','Yes! Keep building 🔨','Great mining! ⛏️','Boom! Nailed it 💥','Brilliant! 🌟'],luckyGood:'Lucky! +2 blocks ✨',
-  streak:k=>` 🔥 ${k} in a row!`,wrong:a=>`Not this time. The answer is ${a}.`,last:(t,n)=>`🏁 ${t} reached the top! Last try for ${n} to tie.`,and:' and ',win:n=>`${n} wins!`,tie:'It’s a tie!',tieText:t=>`${t} reached the top together.`,
+  streak:k=>` 🔥 ${k} in a row!`,wrong:a=>`Not this time. The answer is ${a}.`,wrongPic:'Not this time. The right one is shown in green.',last:(t,n)=>`🏁 ${t} reached the top! Last try for ${n} to tie.`,and:' and ',win:n=>`${n} wins!`,tie:'It’s a tie!',tieText:t=>`${t} reached the top together.`,
   winText:(k,o)=>`That’s win number ${k} 🏆 ${o}`,built:(n,k)=>`${n} built ${k}.`,soloTitle:'Tower complete! 🎉',soloText:(q,b)=>`You needed ${q} questions. Your best at this level: ${b}.`,again:'Play again',menu:'Main menu',winsSoFar:k=>`🏆 Wins so far: ${k}`,
-  sound:'🔊 Sound',fx:'✨ Effects',did:'Did you know?',quote:'Wise words',joke:'Joke time!',show:'Show the answer',cont:'Continue',lvl:'level',pops:['Super!','Wow!','Yes!','Great!','Awesome!']},
+  sound:'🔊 Sound',fx:'✨ Effects',fun:'😂 Jokes & facts',fs:'⛶ Full screen',fsx:'⛶ Exit full screen',did:'Did you know?',quote:'Wise words',joke:'Word play!',silly:'Silly question!',tw:'Tongue twister! Say it 3 times fast:',show:'Show the answer',cont:'Continue',lvl:'level',pops:['Super!','Wow!','Yes!','Great!','Awesome!']},
  pl:{title:'Wieża Liczb',sub:'Wybierz dobrą odpowiedź, a dostaniesz klocek. Szczęśliwe pytania dają 2 klocki. Zbuduj 12 i wygraj!',pl:n=>n===1?'1 gracz':`${n} graczy`,name:i=>`Imię gracza ${i}`,def:i=>`Gracz ${i}`,diff:'Poziom trudności',start:'Zacznij grę',back:'← Menu',
   turn:n=>`Ruch: ${n}`,solo:n=>`${n}: buduj wieżę!`,lucky:'✨ Szczęśliwe pytanie: 2 klocki!',good:['Dobrze! Klocek dodany 🧱','Super! Idziesz w górę ⬆️','Tak! Buduj dalej 🔨','Świetne kopanie! ⛏️','Bum! Trafione 💥','Genialnie! 🌟'],luckyGood:'Szczęście! +2 klocki ✨',
-  streak:k=>` 🔥 Seria: ${k}!`,wrong:a=>`Tym razem nie. Dobra odpowiedź to ${a}.`,last:(t,n)=>`🏁 ${t} na szczycie! Ostatnia szansa na remis: ${n}.`,and:' i ',win:n=>`Wygrywa ${n}!`,tie:'Remis!',tieText:t=>`${t} jednocześnie na szczycie.`,
+  streak:k=>` 🔥 Seria: ${k}!`,wrong:a=>`Tym razem nie. Dobra odpowiedź to ${a}.`,wrongPic:'Tym razem nie. Dobra odpowiedź świeci na zielono.',last:(t,n)=>`🏁 ${t} na szczycie! Ostatnia szansa na remis: ${n}.`,and:' i ',win:n=>`Wygrywa ${n}!`,tie:'Remis!',tieText:t=>`${t} jednocześnie na szczycie.`,
   winText:(k,o)=>`Wygrana numer ${k} 🏆 ${o}`,built:(n,k)=>`${n}: ${k} klocków.`,soloTitle:'Wieża gotowa! 🎉',soloText:(q,b)=>`Potrzebne pytania: ${q}. Twój rekord na tym poziomie: ${b}.`,again:'Zagraj jeszcze raz',menu:'Menu główne',winsSoFar:k=>`🏆 Wygrane: ${k}`,
-  sound:'🔊 Dźwięk',fx:'✨ Efekty',did:'Czy wiesz, że…',quote:'Mądre słowa',joke:'Czas na żart!',show:'Pokaż odpowiedź',cont:'Dalej',lvl:'poziom',pops:['Super!','Brawo!','Ekstra!','Tak!','Czad!']},
+  sound:'🔊 Dźwięk',fx:'✨ Efekty',fun:'😂 Żarty i ciekawostki',fs:'⛶ Pełny ekran',fsx:'⛶ Zamknij pełny ekran',did:'Czy wiesz, że…',quote:'Mądre słowa',joke:'Gra słów!',silly:'Głupie pytanie!',tw:'Łamaniec językowy! Powiedz 3 razy szybko:',show:'Pokaż odpowiedź',cont:'Dalej',lvl:'poziom',pops:['Super!','Brawo!','Ekstra!','Tak!','Czad!']},
  es:{title:'Torre de Números',sub:'Elige la respuesta correcta y coloca un bloque. Las preguntas de la suerte dan 2 bloques. ¡Llega a 12 para ganar!',pl:n=>n===1?'1 jugador':`${n} jugadores`,name:i=>`Nombre del jugador ${i}`,def:i=>`Jugador ${i}`,diff:'Dificultad',start:'Empezar',back:'← Menú',
   turn:n=>`Turno de ${n}`,solo:n=>`${n}: ¡construye tu torre!`,lucky:'✨ Pregunta de la suerte: ¡vale 2 bloques!',good:['¡Correcto! Bloque colocado 🧱','¡Bien! Hacia arriba ⬆️','¡Sí! Sigue construyendo 🔨','¡Gran excavación! ⛏️','¡Bum! ¡Clavado! 💥','¡Genial! 🌟'],luckyGood:'¡Suerte! +2 bloques ✨',
-  streak:k=>` 🔥 ¡${k} seguidas!`,wrong:a=>`Esta vez no. La respuesta es ${a}.`,last:(t,n)=>`🏁 ¡${t} llegó arriba! Último intento de ${n} para empatar.`,and:' y ',win:n=>`¡Gana ${n}!`,tie:'¡Empate!',tieText:t=>`${t} llegaron arriba a la vez.`,
+  streak:k=>` 🔥 ¡${k} seguidas!`,wrong:a=>`Esta vez no. La respuesta es ${a}.`,wrongPic:'Esta vez no. La respuesta correcta está en verde.',last:(t,n)=>`🏁 ¡${t} llegó arriba! Último intento de ${n} para empatar.`,and:' y ',win:n=>`¡Gana ${n}!`,tie:'¡Empate!',tieText:t=>`${t} llegaron arriba a la vez.`,
   winText:(k,o)=>`Es su victoria número ${k} 🏆 ${o}`,built:(n,k)=>`${n} construyó ${k}.`,soloTitle:'¡Torre terminada! 🎉',soloText:(q,b)=>`Has necesitado ${q} preguntas. Tu récord en este nivel: ${b}.`,again:'Jugar otra vez',menu:'Menú principal',winsSoFar:k=>`🏆 Victorias: ${k}`,
-  sound:'🔊 Sonido',fx:'✨ Efectos',did:'¿Sabías que…?',quote:'Palabras sabias',joke:'¡Hora del chiste!',show:'Ver la respuesta',cont:'Continuar',lvl:'nivel',pops:['¡Súper!','¡Olé!','¡Genial!','¡Bravo!','¡Toma!']}
+  sound:'🔊 Sonido',fx:'✨ Efectos',fun:'😂 Chistes y curiosidades',fs:'⛶ Pantalla completa',fsx:'⛶ Salir de pantalla completa',did:'¿Sabías que…?',quote:'Palabras sabias',joke:'¡Juego de palabras!',silly:'¡Pregunta tonta!',tw:'¡Trabalenguas! Dilo 3 veces rápido:',show:'Ver la respuesta',cont:'Continuar',lvl:'nivel',pops:['¡Súper!','¡Olé!','¡Genial!','¡Bravo!','¡Toma!']}
 };
 const U=()=>UI[LANG];
 
@@ -665,8 +946,13 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const MAT=[{c:'--p1',base:'#D9403A',d:'#9E2622',l:'#F2786D'},{c:'--p2',base:'#8A5CE0',d:'#5C37A6',l:'#B797F5'},{c:'--p3',base:'#E0A416',d:'#A77812',l:'#FFE27A'},{c:'--p4',base:'#2F7FD8',d:'#1D569E',l:'#7FB6F2'}];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FSE=document.documentElement,fsOK=!!(FSE.requestFullscreen||FSE.webkitRequestFullscreen)&&(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+function toggleFS(){try{if(isFS())(document.exitFullscreen||document.webkitExitFullscreen).call(document);else{const pr=(FSE.requestFullscreen||FSE.webkitRequestFullscreen).call(FSE);if(pr&&pr.catch)pr.catch(()=>{})}}catch(e){}}
+function fsUpdate(){const g=document.getElementById('fsBtn');if(g){g.classList.toggle('hidden',!fsOK);g.setAttribute('aria-label',isFS()?U().fsx:U().fs);g.title=isFS()?U().fsx:U().fs}const t=document.getElementById('fsSet');if(t)t.textContent=isFS()?U().fsx:U().fs}
+['fullscreenchange','webkitfullscreenchange'].forEach(ev=>document.addEventListener(ev,fsUpdate));
 const S={n:2,players:[{lvl:2},{lvl:6},{lvl:9},{lvl:ADULT}].map((p,i)=>({...p,name:'',steps:0,streak:0,asked:0})),turn:0,busy:false,endRound:false,
-  sound:true,fx:!RM,wins:{},best:{},answered:0,recent:{},q:null,jokeI:0,factI:0};
+  sound:true,fx:!RM,fun:true,lastCat:'',wins:{},best:{},answered:0,recent:{},q:null,jokeI:0,factI:0};
 
 function gen(l,p){const pool=TY.map((t,i)=>i).filter(i=>l>=TY[i].a&&l<=TY[i].b),rec=S.recent[p]||[];let c=pool.filter(i=>!rec.includes(i));if(!c.length)c=pool;
   const i=pick(c);rec.push(i);while(rec.length>Math.min(10,pool.length-1))rec.shift();S.recent[p]=rec;LV=l;return TY[i].f(l)}
@@ -717,9 +1003,9 @@ function celebrate(btn,lucky,streak){if(!S.fx||RM)return;const b=btn.getBounding
 /* storage */
 function load(){try{const d=JSON.parse(localStorage.getItem('mathTower.v4')||'null');
   if(d){if(d.n>=1&&d.n<=4)S.n=d.n;if(UI[d.lang])LANG=d.lang;if(Array.isArray(d.p))d.p.forEach((p,i)=>{if(!S.players[i]||!p)return;if(typeof p.name==='string')S.players[i].name=p.name.slice(0,14);if(p.lvl>=0&&p.lvl<=ULTRA)S.players[i].lvl=p.lvl});
-    if(typeof d.sound==='boolean')S.sound=d.sound;if(typeof d.fx==='boolean')S.fx=d.fx;if(d.wins)S.wins=d.wins;if(d.best)S.best=d.best}
+    if(typeof d.sound==='boolean')S.sound=d.sound;if(typeof d.fx==='boolean')S.fx=d.fx;if(typeof d.fun==='boolean')S.fun=d.fun;if(d.wins)S.wins=d.wins;if(d.best)S.best=d.best}
   else{const nl=(navigator.language||'en').slice(0,2);LANG=UI[nl]?nl:'en'}}catch(e){}}
-function save(){try{localStorage.setItem('mathTower.v4',JSON.stringify({n:S.n,lang:LANG,p:S.players.map(p=>({name:p.name,lvl:p.lvl})),sound:S.sound,fx:S.fx,wins:S.wins,best:S.best}))}catch(e){}}
+function save(){try{localStorage.setItem('mathTower.v4',JSON.stringify({n:S.n,lang:LANG,p:S.players.map(p=>({name:p.name,lvl:p.lvl})),sound:S.sound,fx:S.fx,fun:S.fun,wins:S.wins,best:S.best}))}catch(e){}}
 const isDef=n=>!n||/^(Player|Gracz|Jugador) \d$/.test(n.trim());
 const nameOf=i=>isDef(S.players[i].name)?U().def(i+1):S.players[i].name.trim();
 const key=n=>n.trim().toLowerCase();
@@ -730,7 +1016,8 @@ function buildSetup(){
   const st=$('settings');st.innerHTML='';
   [['en','🇬🇧 English'],['pl','🇵🇱 Polski'],['es','🇪🇸 Español']].forEach(([c,t])=>{const b=document.createElement('button');b.className='pbtn';b.textContent=t;b.setAttribute('aria-pressed',LANG===c);
     b.onclick=()=>{LANG=c;S.players.forEach(p=>{if(isDef(p.name))p.name=''});save();buildSetup()};st.appendChild(b)});
-  [['sound',U().sound],['fx',U().fx]].forEach(([k,t])=>{const b=document.createElement('button');b.className='pbtn';b.textContent=t;b.setAttribute('aria-pressed',S[k]);b.onclick=()=>{S[k]=!S[k];save();buildSetup()};st.appendChild(b)});
+  [['sound',U().sound],['fx',U().fx],['fun',U().fun]].forEach(([k,t])=>{const b=document.createElement('button');b.className='pbtn';b.textContent=t;b.setAttribute('aria-pressed',S[k]);b.onclick=()=>{S[k]=!S[k];save();buildSetup()};st.appendChild(b)});
+  if(fsOK){const fb=document.createElement('button');fb.className='pbtn';fb.id='fsSet';fb.textContent=isFS()?U().fsx:U().fs;fb.onclick=toggleFS;st.appendChild(fb)}
   const ct=$('count');ct.innerHTML='';for(let n=1;n<=4;n++){const b=document.createElement('button');b.className='pbtn';b.textContent=U().pl(n);b.setAttribute('aria-pressed',n===S.n);b.onclick=()=>{S.n=n;buildSetup()};ct.appendChild(b)}
   const box=$('players');box.dataset.n=S.n;box.style.setProperty('--n',S.n);box.innerHTML='';const LD=LEVELS();
   for(let p=0;p<S.n;p++){const pl=S.players[p],card=document.createElement('section');card.className='pcard px';card.style.setProperty('--pc',`var(${MAT[p].c})`);
@@ -754,7 +1041,7 @@ function renderTower(p,added){const pl=S.players[p];
   const mn=$('miner'+p);mn.style.setProperty('--s',pl.steps);if(added){mn.classList.remove('hop');void mn.offsetWidth;mn.classList.add('hop')}
   $('score'+p).textContent=`${pl.steps}/${GOAL} · ${lvlLabel(pl.lvl)}`}
 function setPV(el,p){const c=MAT[p].c;el.style.setProperty('--pc',`var(${c})`);el.style.setProperty('--pc-soft',`var(${c}-soft)`)}
-function icons(){$('soundBtn').textContent=S.sound?'🔊':'🔇';$('fxBtn').textContent=S.fx?'✨':'▫️';$('soundBtn').setAttribute('aria-label',U().sound);$('fxBtn').setAttribute('aria-label',U().fx)}
+function icons(){fsUpdate();$('soundBtn').textContent=S.sound?'🔊':'🔇';$('fxBtn').textContent=S.fx?'✨':'▫️';$('soundBtn').setAttribute('aria-label',U().sound);$('fxBtn').setAttribute('aria-label',U().fx)}
 
 /* flow */
 function startGame(){for(let i=0;i<S.n;i++){const p=S.players[i];p.steps=0;p.streak=0;p.asked=0}
@@ -771,8 +1058,8 @@ function answer(btn,v){if(S.busy)return;S.busy=true;const p=S.turn,pl=S.players[
   if(ok){btn.classList.add('right');const gain=Math.min(S.q.lucky?2:1,GOAL-pl.steps);pl.steps+=gain;pl.streak++;renderTower(p,gain);
     $('feedback').textContent=(S.q.lucky?U().luckyGood:pick(U().good))+(pl.streak>=3?U().streak(pl.streak):'');
     S.q.lucky?tone([523,659,784,1047,1319],.08):tone([392,523,659],.08);celebrate(btn,S.q.lucky,pl.streak)}
-  else{pl.streak=0;btn.classList.add('wrong');let right='';document.querySelectorAll('.ans').forEach(b=>{if(b.dataset.v===S.q.ans){b.classList.add('right');right=b.textContent||'✔'}});
-    $('feedback').textContent=U().wrong(right);tone([196,147],.14)}
+  else{pl.streak=0;btn.classList.add('wrong');let right='';document.querySelectorAll('.ans').forEach(b=>{if(b.dataset.v===S.q.ans){b.classList.add('right');right=b.querySelector('svg')?'':b.innerHTML}});
+    $('feedback').innerHTML=right?U().wrong(right):U().wrongPic;tone([196,147],.14)}
   setTimeout(()=>afterAnswer(p),ok?1200:2200)}
 function afterAnswer(p){const P=S.players.slice(0,S.n);let next;
   if(S.n===1){if(P[0].steps>=GOAL)return finish([0]);next=()=>nextQuestion()}
@@ -780,14 +1067,17 @@ function afterAnswer(p){const P=S.players.slice(0,S.n);let next;
     if(S.endRound){const top=P.map((x,i)=>i).filter(i=>P[i].steps>=GOAL);let q=-1;for(let j=p+1;j<S.n;j++)if(P[j].steps===GOAL-1){q=j;break}
       if(q<0)return finish(top);S.turn=q;next=()=>nextQuestion(U().last(top.map(i=>nameOf(i)).join(U().and),nameOf(q)))}
     else{S.turn=(p+1)%S.n;next=()=>nextQuestion()}}
-  if(S.answered%6===0)showFlash(next);else next()}
-function showFlash(done){const f=$('flash'),joke=S.answered%12===6;let item;
-  if(joke){const L=JOKES.filter(j=>j[LANG]);item=L[S.jokeI++%L.length]}else{const L=FACTS.filter(j=>j[LANG]);item=L[S.factI++%L.length]}
-  const c=item[LANG],quote=!joke&&item.q;$('fIcon').textContent=joke?'😂':quote?'💬':'💡';$('fTitle').textContent=joke?U().joke:quote?U().quote:U().did;
-  $('fText').textContent=joke||quote?c[0]:c;$('fWho').textContent=quote?'— '+c[1]:'';$('fWho').classList.toggle('hidden',!quote);
-  $('fAns').textContent=joke?c[1]:'';$('fAns').classList.add('hidden');$('fShow').textContent=U().show;$('fShow').classList.toggle('hidden',!joke);$('fCont').textContent=U().cont;$('fCont').classList.toggle('hidden',!!joke);
-  $('fShow').onclick=()=>{$('fAns').classList.remove('hidden');$('fShow').classList.add('hidden');$('fCont').classList.remove('hidden');$('fCont').focus();tone([330,262,392],.09,'triangle');if(S.fx&&!RM)E.rain(['😂','🤣','😆'])};
-  $('fCont').onclick=()=>{f.classList.add('hidden');done()};f.classList.remove('hidden');(joke?$('fShow'):$('fCont')).focus();tone([660,880],.08,'triangle')}
+  if(S.fun&&S.answered%3===0)showFlash(next);else next()}
+const BAGS={};
+function draw(cat){const k=cat+LANG;if(!BAGS[k]||!BAGS[k].length)BAGS[k]=shuffle(FUN[cat].filter(x=>x[LANG]));return BAGS[k].pop()}
+function showFlash(done){const f=$('flash'),cats=['pun','silly','fact'].filter(c=>c!==S.lastCat||Math.random()<.25),cat=pick(cats);S.lastCat=cat;
+  const item=draw(cat),c=item[LANG],qa=cat!=='fact',quote=cat==='fact'&&item.q,tw=item.tw;
+  $('fIcon').textContent=tw?'👅':cat==='pun'?'😜':cat==='silly'?'🤪':quote?'💬':'💡';
+  $('fTitle').textContent=tw?U().tw:cat==='pun'?U().joke:cat==='silly'?U().silly:quote?U().quote:U().did;
+  $('fText').textContent=qa||quote?c[0]:c;$('fWho').textContent=quote?'— '+c[1]:'';$('fWho').classList.toggle('hidden',!quote);
+  $('fAns').textContent=qa?c[1]:'';$('fAns').classList.add('hidden');$('fShow').textContent=tw?U().cont:U().show;$('fShow').classList.toggle('hidden',!qa);$('fCont').textContent=U().cont;$('fCont').classList.toggle('hidden',qa);
+  $('fShow').onclick=()=>{$('fAns').classList.remove('hidden');$('fShow').classList.add('hidden');$('fCont').classList.remove('hidden');$('fCont').focus();tone([330,262,392],.09,'triangle');if(S.fx&&!RM)E.rain(tw?['👅','🌀','😵']:['😂','🤣','😆'])};
+  $('fCont').onclick=()=>{f.classList.add('hidden');done()};f.classList.remove('hidden');(qa?$('fShow'):$('fCont')).focus();tone([660,880],.08,'triangle')}
 function finish(winners){S.busy=true;const P=S.players.slice(0,S.n),wb=$('winbox');
   if(S.n===1){const nm=nameOf(0),k=key(nm)+'|'+P[0].lvl,q=P[0].asked;S.best[k]=Math.min(S.best[k]||Infinity,q);setPV(wb,0);$('winTitle').textContent=U().soloTitle;$('winText').textContent=U().soloText(q,S.best[k])}
   else{winners.forEach(i=>{const k=key(nameOf(i));S.wins[k]=(S.wins[k]||0)+1});
@@ -799,7 +1089,7 @@ function finish(winners){S.busy=true;const P=S.players.slice(0,S.n),wb=$('winbox
 
 function toSetup(){$('overlay').classList.add('hidden');$('flash').classList.add('hidden');$('game').classList.add('hidden');$('setup').classList.remove('hidden');buildSetup()}
 $('startBtn').onclick=startGame;$('againBtn').onclick=startGame;$('newBtn').onclick=toSetup;$('backBtn').onclick=toSetup;
-$('soundBtn').onclick=()=>{S.sound=!S.sound;icons();save()};$('fxBtn').onclick=()=>{S.fx=!S.fx;icons();save()};
+$('soundBtn').onclick=()=>{S.sound=!S.sound;icons();save()};$('fxBtn').onclick=()=>{S.fx=!S.fx;icons();save()};$('fsBtn').onclick=toggleFS;fsUpdate();
 document.addEventListener('keydown',e=>{if($('game').classList.contains('hidden')||S.busy||!$('flash').classList.contains('hidden'))return;
   const i=parseInt(e.key,10),btns=document.querySelectorAll('.ans');if(i>=1&&i<=btns.length)btns[i-1].click()});
 load();buildSetup();
