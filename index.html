@@ -92,7 +92,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
   box-shadow:inset -4px -4px 0 rgba(0,0,0,.25),inset 4px 4px 0 rgba(255,255,255,.3)}
 .block.drop{animation:drop .45s steps(6)}
 @keyframes drop{from{transform:translateY(-90px)}to{transform:none}}
-.miner{position:absolute;left:50%;width:40px;height:52px;margin-left:-20px;z-index:3;bottom:calc((var(--h) + 3px) * var(--s) / 12);transition:bottom .35s steps(4)}
+.miner{position:absolute;left:50%;width:40px;height:52px;margin-left:-20px;z-index:3;bottom:calc((var(--h) + 3px) * var(--s) / 8);transition:bottom .35s steps(4)}
 .miner svg{width:100%;height:100%;display:block}
 .miner.hop svg{animation:hop .45s steps(4)}
 @keyframes hop{50%{transform:translateY(-18px)}}
@@ -172,7 +172,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
 <canvas id="fx" aria-hidden="true"></canvas>
 
 <main id="setup" class="wrap">
-  <div class="title"><h1 id="tTitle"></h1><div class="ver">v1.1</div><p id="tSub"></p></div>
+  <div class="title"><h1 id="tTitle"></h1><div class="ver">v1.2</div><p id="tSub"></p></div>
   <div class="settings" id="settings"></div>
   <div class="count" id="count" role="group"></div>
   <div class="players" id="players"></div>
@@ -217,7 +217,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--lucky);outline-
 
 <script>
 /* ================= PURE PART (no DOM) ================= */
-const GOAL=12, ADULT=11, PRO=12, ULTRA=13;
+const GOAL=8, ADULT=11, PRO=12, ULTRA=13;
 let LANG='en', LV=0;
 const r=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 const pick=a=>a[r(0,a.length-1)];
@@ -922,17 +922,17 @@ const FUN={pun:PUNS,silly:SILLY,fact:FACTS};
 
 /* ---------- UI text ---------- */
 const UI={
- en:{title:'Math Tower',sub:'Pick the right answer to place a block. Lucky questions give 2 blocks. Reach 12 to win!',pl:n=>n===1?'1 player':`${n} players`,name:i=>`Player ${i} name`,def:i=>`Player ${i}`,diff:'Difficulty',start:'Start game',back:'← Menu',
+ en:{title:'Math Tower',sub:'Pick the right answer to place a block. Lucky questions give 2 blocks. Reach 8 to win!',pl:n=>n===1?'1 player':`${n} players`,name:i=>`Player ${i} name`,def:i=>`Player ${i}`,diff:'Difficulty',start:'Start game',back:'← Menu',
   turn:n=>`${n}’s turn`,solo:n=>`${n}: build your tower!`,lucky:'✨ Lucky question: worth 2 blocks!',good:['Correct! Block placed 🧱','Nice! Up you go ⬆️','Yes! Keep building 🔨','Great mining! ⛏️','Boom! Nailed it 💥','Brilliant! 🌟'],luckyGood:'Lucky! +2 blocks ✨',
   streak:k=>` 🔥 ${k} in a row!`,wrong:a=>`Not this time. The answer is ${a}.`,wrongPic:'Not this time. The right one is shown in green.',last:(t,n)=>`🏁 ${t} reached the top! Last try for ${n} to tie.`,and:' and ',win:n=>`${n} wins!`,tie:'It’s a tie!',tieText:t=>`${t} reached the top together.`,
   winText:(k,o)=>`That’s win number ${k} 🏆 ${o}`,built:(n,k)=>`${n} built ${k}.`,soloTitle:'Tower complete! 🎉',soloText:(q,b)=>`You needed ${q} questions. Your best at this level: ${b}.`,again:'Play again',menu:'Main menu',winsSoFar:k=>`🏆 Wins so far: ${k}`,
   sound:'🔊 Sound',fx:'✨ Effects',fun:'😂 Jokes & facts',fs:'⛶ Full screen',fsx:'⛶ Exit full screen',did:'Did you know?',quote:'Wise words',joke:'Word play!',silly:'Silly question!',tw:'Tongue twister! Say it 3 times fast:',show:'Show the answer',cont:'Continue',lvl:'level',pops:['Super!','Wow!','Yes!','Great!','Awesome!']},
- pl:{title:'Wieża Liczb',sub:'Wybierz dobrą odpowiedź, a dostaniesz klocek. Szczęśliwe pytania dają 2 klocki. Zbuduj 12 i wygraj!',pl:n=>n===1?'1 gracz':`${n} graczy`,name:i=>`Imię gracza ${i}`,def:i=>`Gracz ${i}`,diff:'Poziom trudności',start:'Zacznij grę',back:'← Menu',
+ pl:{title:'Wieża Liczb',sub:'Wybierz dobrą odpowiedź, a dostaniesz klocek. Szczęśliwe pytania dają 2 klocki. Zbuduj 8 i wygraj!',pl:n=>n===1?'1 gracz':`${n} graczy`,name:i=>`Imię gracza ${i}`,def:i=>`Gracz ${i}`,diff:'Poziom trudności',start:'Zacznij grę',back:'← Menu',
   turn:n=>`Ruch: ${n}`,solo:n=>`${n}: buduj wieżę!`,lucky:'✨ Szczęśliwe pytanie: 2 klocki!',good:['Dobrze! Klocek dodany 🧱','Super! Idziesz w górę ⬆️','Tak! Buduj dalej 🔨','Świetne kopanie! ⛏️','Bum! Trafione 💥','Genialnie! 🌟'],luckyGood:'Szczęście! +2 klocki ✨',
   streak:k=>` 🔥 Seria: ${k}!`,wrong:a=>`Tym razem nie. Dobra odpowiedź to ${a}.`,wrongPic:'Tym razem nie. Dobra odpowiedź świeci na zielono.',last:(t,n)=>`🏁 ${t} na szczycie! Ostatnia szansa na remis: ${n}.`,and:' i ',win:n=>`Wygrywa ${n}!`,tie:'Remis!',tieText:t=>`${t} jednocześnie na szczycie.`,
   winText:(k,o)=>`Wygrana numer ${k} 🏆 ${o}`,built:(n,k)=>`${n}: ${k} klocków.`,soloTitle:'Wieża gotowa! 🎉',soloText:(q,b)=>`Potrzebne pytania: ${q}. Twój rekord na tym poziomie: ${b}.`,again:'Zagraj jeszcze raz',menu:'Menu główne',winsSoFar:k=>`🏆 Wygrane: ${k}`,
   sound:'🔊 Dźwięk',fx:'✨ Efekty',fun:'😂 Żarty i ciekawostki',fs:'⛶ Pełny ekran',fsx:'⛶ Zamknij pełny ekran',did:'Czy wiesz, że…',quote:'Mądre słowa',joke:'Gra słów!',silly:'Głupie pytanie!',tw:'Łamaniec językowy! Powiedz 3 razy szybko:',show:'Pokaż odpowiedź',cont:'Dalej',lvl:'poziom',pops:['Super!','Brawo!','Ekstra!','Tak!','Czad!']},
- es:{title:'Torre de Números',sub:'Elige la respuesta correcta y coloca un bloque. Las preguntas de la suerte dan 2 bloques. ¡Llega a 12 para ganar!',pl:n=>n===1?'1 jugador':`${n} jugadores`,name:i=>`Nombre del jugador ${i}`,def:i=>`Jugador ${i}`,diff:'Dificultad',start:'Empezar',back:'← Menú',
+ es:{title:'Torre de Números',sub:'Elige la respuesta correcta y coloca un bloque. Las preguntas de la suerte dan 2 bloques. ¡Llega a 8 para ganar!',pl:n=>n===1?'1 jugador':`${n} jugadores`,name:i=>`Nombre del jugador ${i}`,def:i=>`Jugador ${i}`,diff:'Dificultad',start:'Empezar',back:'← Menú',
   turn:n=>`Turno de ${n}`,solo:n=>`${n}: ¡construye tu torre!`,lucky:'✨ Pregunta de la suerte: ¡vale 2 bloques!',good:['¡Correcto! Bloque colocado 🧱','¡Bien! Hacia arriba ⬆️','¡Sí! Sigue construyendo 🔨','¡Gran excavación! ⛏️','¡Bum! ¡Clavado! 💥','¡Genial! 🌟'],luckyGood:'¡Suerte! +2 bloques ✨',
   streak:k=>` 🔥 ¡${k} seguidas!`,wrong:a=>`Esta vez no. La respuesta es ${a}.`,wrongPic:'Esta vez no. La respuesta correcta está en verde.',last:(t,n)=>`🏁 ¡${t} llegó arriba! Último intento de ${n} para empatar.`,and:' y ',win:n=>`¡Gana ${n}!`,tie:'¡Empate!',tieText:t=>`${t} llegaron arriba a la vez.`,
   winText:(k,o)=>`Es su victoria número ${k} 🏆 ${o}`,built:(n,k)=>`${n} construyó ${k}.`,soloTitle:'¡Torre terminada! 🎉',soloText:(q,b)=>`Has necesitado ${q} preguntas. Tu récord en este nivel: ${b}.`,again:'Jugar otra vez',menu:'Menú principal',winsSoFar:k=>`🏆 Victorias: ${k}`,
